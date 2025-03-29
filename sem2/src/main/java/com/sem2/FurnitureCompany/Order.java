@@ -24,7 +24,7 @@ public class Order {
     public AssemblyStation getStation() {
         return station;
     }
-    public void setStationID(AssemblyStation station) {
+    public void setStation(AssemblyStation station) {
         this.station = station;
     }
     public Order(FurnitureType furnitureType) {

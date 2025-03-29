@@ -117,7 +117,12 @@ public class EventSimulationCore extends SimulationCore {
             }
             Event event = eventCalendar.poll();
             if (event.getTime() < maxSimulationTime) {
-                event.execute();
+                if (event.getTime() >= currentTime - Constants.epsilon) {
+                    event.execute();
+                } else {
+                    throw new RuntimeException("Event time is less than current time: " + event.getTime() + " < " + currentTime);
+                }
+                
             }
         }
 

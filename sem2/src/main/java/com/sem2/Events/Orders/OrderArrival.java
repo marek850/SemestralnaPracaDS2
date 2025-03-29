@@ -24,34 +24,34 @@ public class OrderArrival extends BasicFurnitureEvent{
     @Override
     public void execute() {
         super.execute();
+        System.out.println("Arrival");
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
         
         Order order = creatOrder(sim);
         order.setState(OrderState.PENDING);
         order.setArrivalTime(getTime());
         sim.addActiveOrder(order);
-        if (sim.isAvailableStation()) {
-            order.setStationID(sim.getBestAssemblyStation());
-        } else {
-            AssemblyStation station = new AssemblyStation(sim.getLastStationId() + 1);
-            sim.setLastStationId(station.getId());
-            station.setCurrentProcess(Process.CUTTING);
-            sim.addStation(station);
-            order.setStationID(station);
-        }
-        if (sim.isAAvailable()) {
+        sim.addOrder(order);
+        if (sim.isAAvailable() && sim.isOrderWaitingForCutting()) {
+            order = sim.getOrderWaitingForCutting();
+            if (sim.isAvailableStation()) {
+                order.setStation(sim.getBestAssemblyStation());
+            } else {
+                AssemblyStation station = new AssemblyStation(sim.getLastStationId() + 1);
+                sim.setLastStationId(station.getId());
+                station.setCurrentProcess(Process.CUTTING);
+                sim.addStation(station);
+                order.setStation(station);
+            }
             Employee availableEmployee = sim.getAAvailable();
             availableEmployee.setState(EmployeeState.MOVING);
             MoveToStorage moveToStorage = new MoveToStorage(getTime(), sim, availableEmployee, order);
             sim.addEvent(moveToStorage);
-        } else {
-            sim.addOrder(order);
-        }
-
+        } 
+        System.out.println(order.getStation());
         OrderArrival orderArrival = new OrderArrival(getTime() + sim.getOrderArrivalTime(), this.getSimulationCore());
         sim.addEvent(orderArrival);
         sim.refreshGUI();
-        sim.setCurrentTime(getTime());
     }
 
     private Order creatOrder(FurnitureCompany sim) {

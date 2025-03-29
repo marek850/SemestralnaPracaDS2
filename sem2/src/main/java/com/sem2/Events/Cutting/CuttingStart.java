@@ -3,6 +3,9 @@ package com.sem2.Events.Cutting;
 import com.sem2.Events.EmpFurnitureEvent;
 import com.sem2.FurnitureCompany.Employee;
 import com.sem2.FurnitureCompany.Order;
+import com.sem2.FurnitureCompany.Enums.EmployeeState;
+import com.sem2.FurnitureCompany.Enums.OrderState;
+import com.sem2.FurnitureCompany.Enums.Process;
 import com.sem2.SimCore.EventSimulationCore;
 import com.sem2.SimCore.FurnitureCompany;
 import com.sem2.SimCore.SimulationCore;
@@ -15,7 +18,12 @@ public class CuttingStart extends EmpFurnitureEvent{
     @Override
     public void execute() {
         super.execute();
+        System.out.println("Cutting start");
+        
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
+        getEmployee().setState(EmployeeState.CUTTING);
+        getOrder().setState(OrderState.BEING_CUT);
+        getOrder().getStation().setCurrentProcess(Process.CUTTING);
         CuttingEnd cuttingEnd = new CuttingEnd(getTime() + sim.getCuttingTime(getOrder()), sim, getEmployee(), getOrder());
         sim.addEvent(cuttingEnd);
         sim.refreshGUI();

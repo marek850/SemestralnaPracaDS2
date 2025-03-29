@@ -4,6 +4,7 @@ import com.sem2.Events.EmpFurnitureEvent;
 import com.sem2.Events.Cutting.PrepareMaterial;
 import com.sem2.FurnitureCompany.Employee;
 import com.sem2.FurnitureCompany.Order;
+import com.sem2.FurnitureCompany.Enums.EmployeeState;
 import com.sem2.FurnitureCompany.Enums.OrderState;
 import com.sem2.FurnitureCompany.Enums.Position;
 import com.sem2.SimCore.EventSimulationCore;
@@ -18,6 +19,7 @@ public class MoveToStorage extends EmpFurnitureEvent{
     @Override
     public void execute() {
         super.execute();
+        System.out.println("Move to storage");
         getOrder().setState(OrderState.PREPARING_MATERIAL);
         double moveTime = 0;
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
@@ -32,6 +34,7 @@ public class MoveToStorage extends EmpFurnitureEvent{
             default:
                 break;
         }
+        getEmployee().setState(EmployeeState.MOVING);
         PrepareMaterial prepareMaterial = new PrepareMaterial(moveTime, sim, getEmployee(), getOrder());
         sim.addEvent(prepareMaterial);
         sim.refreshGUI();

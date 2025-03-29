@@ -26,8 +26,10 @@ public class Main {
         generateSamples(exponentialGen, "exponential_data.txt"); */
         /* TicketsSim sim = new TicketsSim(Double.MAX_VALUE);
         sim.runSimulation(1); */
-        FurnitureCompany sim = new FurnitureCompany(7171200,2,2,18);
+        FurnitureCompany sim = new FurnitureCompany(7171200,5,5,5);
+        sim.setMaxSpeedMode();
         sim.runSimulation(1000);
+        
     }
     
     private static void generateSamples(AbstractGenerator<Double> generator, String filename) {

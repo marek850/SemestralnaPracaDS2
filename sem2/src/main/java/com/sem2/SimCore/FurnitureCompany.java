@@ -114,17 +114,6 @@ public class FurnitureCompany extends EventSimulationCore{
         for (int i = 0; i < numberOfCEmployees; i++) {
             employeesC.add(new Employee(EmployeeType.C));
         }
-
-        for (Employee employee : employeesA) {
-            availableEmployeesA.add(employee);
-        }
-        for (Employee employee : employeesB) {
-            availableEmployeesB.add(employee);
-        }
-        for (Employee employee : employeesC) {
-            availableEmployeesC.add(employee);
-        }
-        
     }
     
     public double getMatPrepTime() {
@@ -275,6 +264,15 @@ public class FurnitureCompany extends EventSimulationCore{
     @Override
     protected void beforeSimRun() {
         super.beforeSimRun();
+        for (Employee employee : employeesA) {
+            availableEmployeesA.add(employee);
+        }
+        for (Employee employee : employeesB) {
+            availableEmployeesB.add(employee);
+        }
+        for (Employee employee : employeesC) {
+            availableEmployeesC.add(employee);
+        }
         OrderArrival orderArrival = new OrderArrival( getCurrentTime() + getOrderArrivalTime(), this);
         addEvent(orderArrival);
     }
@@ -304,8 +302,10 @@ public class FurnitureCompany extends EventSimulationCore{
         allActiveOrders.clear();
         allAssemblyStations.clear();
         System.out.println("Average order processing time: " + orderFinishTime.getAverage() + " seconds.");
+        /* 
+        System.out.println("Average order processing time: " + orderFinishTime.getAverage() + " seconds.");
         System.out.println("Average order processing time: " + orderFinishTime.getAverage()/60 + " minutes.");
-        System.out.println("Average order processing time: " + orderFinishTime.getAverage()/3600 + " hours.");
+        System.out.println("Average order processing time: " + orderFinishTime.getAverage()/3600 + " hours."); */
     }
     public void addActiveOrder(Order order) {
         allActiveOrders.add(order);
@@ -320,8 +320,8 @@ public class FurnitureCompany extends EventSimulationCore{
     protected void afterSimulation() {
         super.afterSimulation();
         System.out.println("Simulation finished.");
-        System.out.println("Average order processing time: " + orderFinishTime.getAverage() + " seconds.");
+        System.out.println("Average order processing time: " + orderFinishTime.getAverage() + " seconds.");/* 
         System.out.println("Average order processing time: " + orderFinishTime.getAverage()/60 + " minutes.");
-        System.out.println("Average order processing time: " + orderFinishTime.getAverage()/3600 + " hours.");
+        System.out.println("Average order processing time: " + orderFinishTime.getAverage()/3600 + " hours."); */
     }
 }

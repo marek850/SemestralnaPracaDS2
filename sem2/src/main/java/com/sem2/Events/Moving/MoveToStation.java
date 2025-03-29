@@ -25,42 +25,49 @@ public class MoveToStation extends EmpFurnitureEvent{
     public void execute() {
         super.execute();
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
-        double moveTime = 0;
-        switch (getEmployee().getCurrentPosition()) {
-            case STORAGE:
-                moveTime = getTime() + sim.getStorageMoveTime();
-                getEmployee().setPosition(Position.ASSEMBLY_STATION);
-
-                break;
-            case ASSEMBLY_STATION:
-                moveTime = getTime() + sim.getStationMoveTime();
-                break;
-            default:
-                break;
-        }
+        System.out.println("Move to station");
+        
 
         switch (getEmployee().getType()) {
+            //ak je zamestnanec zo skupiny A tak modelujem presun
             case A:
+                double moveTime = 0;
+                switch (getEmployee().getCurrentPosition()) {
+                    case STORAGE:
+                        moveTime = getTime() + sim.getStorageMoveTime();
+                        getEmployee().setPosition(Position.ASSEMBLY_STATION);
+
+                        break;
+                    case ASSEMBLY_STATION:
+                        moveTime = getTime() + sim.getStationMoveTime();
+                        break;
+                    default:
+                        break;
+                }
+                getEmployee().setState(EmployeeState.MOVING);
                 CuttingStart cuttingStart = new CuttingStart(moveTime, sim, getEmployee(), getOrder());
-                getOrder().setState(OrderState.BEING_CUT);
                 sim.addEvent(cuttingStart);
                 break;
+            //ak je zamestnanec zo skupiny B tak modelujem skladanie
             case B:
-                AssemblyEnd assemblyEnd = new AssemblyEnd(getTime() + sim.getAssembleTime(getOrder()), sim, getEmployee(), getOrder());
                 getEmployee().setState(EmployeeState.ASSEMBLING);
                 getOrder().setState(OrderState.BEING_ASSEMBLED);
+                AssemblyEnd assemblyEnd = new AssemblyEnd(getTime() + sim.getAssembleTime(getOrder()), sim, getEmployee(), getOrder());
                 sim.addEvent(assemblyEnd);
                 break;
+            //ak je zamestnanec zo skupiny C tak modelujem montaz alebo lakovanie
             case C:
-                if (getOrder().getState() == OrderState.ASSEMBLED && getOrder().getType() == FurnitureType.WARDROBE) {
+                if (getOrder().getState() == OrderState.WAITING_FOR_FITTING && getOrder().getType() == FurnitureType.WARDROBE) {
                     getEmployee().setState(EmployeeState.FITTING);
                     getOrder().getStation().setCurrentProcess(Process.FITTING);
+                    getOrder().setState(OrderState.BEING_FITTED);
                     Fitting fitting = new Fitting(getTime() + sim.getFittingTime(), sim, getEmployee(), getOrder());
                     sim.addEvent(fitting);
                 } else {
                     getEmployee().setState(EmployeeState.VARNISHING);
                     VarnishingEnd varnishingEnd = new VarnishingEnd(getTime() + sim.getVarnishingTime(getOrder()), sim, getEmployee(), getOrder());
                     getOrder().setState(OrderState.BEING_VARNISHED);
+                    getOrder().getStation().setCurrentProcess(Process.VARNISHING);
                     sim.addEvent(varnishingEnd);
                 }
                 break;

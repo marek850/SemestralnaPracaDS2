@@ -17,11 +17,9 @@ public class Fitting extends EmpFurnitureEvent{
     @Override
     public void execute() {
         super.execute();
+        System.out.println("Fitting start");
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
         FinalizeOrder finalizeOrder = new FinalizeOrder(getTime(), sim, getEmployee(), getOrder());
         sim.addEvent(finalizeOrder);
-        getOrder().setState(OrderState.FINISHED);
-        sim.getOrderFinishTime().addValue(getTime() - getOrder().getArrivalTime());
-        sim.freeEmployee(getEmployee());
     }
 }

@@ -5,6 +5,7 @@ import com.sem2.Events.Moving.MoveToStation;
 import com.sem2.FurnitureCompany.Employee;
 import com.sem2.FurnitureCompany.Order;
 import com.sem2.FurnitureCompany.Enums.EmployeeState;
+import com.sem2.FurnitureCompany.Enums.Position;
 import com.sem2.FurnitureCompany.Enums.Process;
 import com.sem2.SimCore.EventSimulationCore;
 import com.sem2.SimCore.FurnitureCompany;
@@ -18,17 +19,17 @@ public class AssemblyStart extends EmpFurnitureEvent{
     @Override
     public void execute() {
         super.execute();
+        System.out.println("Assembly start");
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
         getEmployee().setState(EmployeeState.MOVING);
         double moveTime = 0;
         switch (getEmployee().getCurrentPosition()) {
             case STORAGE:
                 moveTime = getTime() + sim.getStorageMoveTime();
-                
+                getEmployee().setPosition(Position.ASSEMBLY_STATION);
                 break;
             case ASSEMBLY_STATION:
                 moveTime = getTime() + sim.getStationMoveTime();
-                
                 break;
             default:
                 break;
