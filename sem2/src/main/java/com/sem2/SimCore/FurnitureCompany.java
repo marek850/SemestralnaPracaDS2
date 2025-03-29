@@ -43,15 +43,39 @@ public class FurnitureCompany extends EventSimulationCore{
         return employeesC;
     }
     private ArrayList<Order> waitingOrdersQueue = new ArrayList<>();
+    public ArrayList<Order> getWaitingOrdersQueue() {
+        return waitingOrdersQueue;
+    }
     private ArrayList<Order> varnishingWaitQueue = new ArrayList<>();
+    public ArrayList<Order> getVarnishingWaitQueue() {
+        return varnishingWaitQueue;
+    }
     private ArrayList<Order> assemblingWaitQueue = new ArrayList<>();
+    public ArrayList<Order> getAssemblingWaitQueue() {
+        return assemblingWaitQueue;
+    }
     private ArrayList<Order> fittingWaitQueue = new ArrayList<>();
 
+    public ArrayList<Order> getFittingWaitQueue() {
+        return fittingWaitQueue;
+    }
     private ArrayList<Employee> availableEmployeesA = new ArrayList<>();
+    public ArrayList<Employee> getAvailableEmployeesA() {
+        return availableEmployeesA;
+    }
     private ArrayList<Employee> availableEmployeesB = new ArrayList<>();
+    public ArrayList<Employee> getAvailableEmployeesB() {
+        return availableEmployeesB;
+    }
     private ArrayList<Employee> availableEmployeesC = new ArrayList<>();
 
+    public ArrayList<Employee> getAvailableEmployeesC() {
+        return availableEmployeesC;
+    }
     private ArrayList<AssemblyStation> availableAssemblyStations = new ArrayList<>();
+    public ArrayList<AssemblyStation> getAvailableAssemblyStations() {
+        return availableAssemblyStations;
+    }
     private ArrayList<AssemblyStation> allAssemblyStations = new ArrayList<>();
 
     public ArrayList<AssemblyStation> getAllAssemblyStations() {

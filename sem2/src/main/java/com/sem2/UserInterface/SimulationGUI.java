@@ -2,7 +2,9 @@ package com.sem2.UserInterface;
 
 
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -11,8 +13,12 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -53,6 +59,18 @@ public class SimulationGUI extends JFrame implements UserInterface {
     private FurnitureCompany simulation;
     private int points;
     private int totalReplications;
+    private JTable employeesTable;
+    private JTable ordersTable;
+    private JTable assemblyStationsTable;
+    private JTable waitingOrderTable;
+    private JTable freeWorkerATable;
+    private JTable freeWorkerBTable;
+    private JTable freeWorkerCTable;
+    private JTable freeAssemblyTable;
+    private JTable waitingForPaintingTable;
+    private JTable waitingForAssemblyTable;
+    private JTable waitingForHardwareTable;
+    
     public SimulationGUI() {
         setTitle("Magula Semestralna práca");
         dataset = new XYSeriesCollection(new XYSeries("Celkový čas spracovania objednávky"));
@@ -68,6 +86,26 @@ public class SimulationGUI extends JFrame implements UserInterface {
         NumberAxis rangeAxis = (NumberAxis) chart.getXYPlot().getRangeAxis();
         rangeAxis.setAutoRange(true); // Enable auto-ranging
         rangeAxis.setAutoRangeIncludesZero(false); // Exclude zero from the Y-axis range
+
+        chart.setBackgroundPaint(Color.BLACK);
+        XYPlot plot = chart.getXYPlot();
+
+        // Nastavenie tmavého pozadia pre graf
+        plot.setBackgroundPaint(Color.DARK_GRAY);
+        plot.getDomainAxis().setLabelPaint(Color.WHITE); // Os X
+        plot.getRangeAxis().setLabelPaint(Color.WHITE); // Os Y
+        plot.getDomainAxis().setTickLabelPaint(Color.WHITE); // Os X
+        plot.getRangeAxis().setTickLabelPaint(Color.WHITE); // Os Y
+        // Nastavenie farby mriežky na tmavú (šedá)
+        plot.setDomainGridlinePaint(Color.GRAY); // Gridline pre os X
+        plot.setRangeGridlinePaint(Color.GRAY);   // Gridline pre os Y
+
+        // Nastavenie farby čiar na biele alebo svetlé pre lepšiu viditeľnosť
+        plot.getRenderer().setSeriesPaint(0, Color.GREEN); // Pre prvú sériu dát
+        plot.getRenderer().setSeriesStroke(0, new BasicStroke(2.0f));
+        // Nastavenie farby pre legendu
+        chart.getLegend().setBackgroundPaint(Color.DARK_GRAY);
+        chart.getLegend().setItemPaint(Color.WHITE);
 
         ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setPreferredSize(new Dimension(800, 600));
@@ -98,8 +136,8 @@ public class SimulationGUI extends JFrame implements UserInterface {
         simulationTimeLabelTextField = new JTextField(20);
         simulationTimeLabelTextField.setEditable(false); // Zakázanie editácie
 
-        JLabel timeFactorLabel = new JLabel("Výber stratégie:");
-        String[] timeFactors = {"Skutočný čas", "0.5x Skutočný čas", "MAX rýchlosť"};
+        JLabel timeFactorLabel = new JLabel("Zrýchlenie voči realite:");
+        String[] timeFactors = {"0x", "2x", "5x", "10x", "20x", "50x", "100x", "MAX rýchlosť"};
         timeFactorComboBox = new JComboBox<>(timeFactors);
         
         // Tlačidlá
@@ -107,19 +145,19 @@ public class SimulationGUI extends JFrame implements UserInterface {
         stopButton = new JButton("Zastaviť");
         stopButton.setEnabled(false);
         pauseButton = new JButton("Pozastaviť");
-
         pauseButton.addActionListener(e -> pauseSimulation());
         startButton.addActionListener(e -> startSimulation());
         stopButton.addActionListener(e -> stopSimulation());
         JTabbedPane tabbedPane = new JTabbedPane();
 
         JPanel animationPanel = new JPanel(new BorderLayout(10, 10));
+        JScrollPane animationPanelScroll = new JScrollPane(animationPanel);
         animationPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         JPanel tab3 = new JPanel();
         tab3.add(new JLabel("Obsah tretej záložky"));
 
         tabbedPane.addTab("Graf", chartPanel);
-        tabbedPane.addTab("Animácia", animationPanel);
+        tabbedPane.addTab("Animácia", animationPanelScroll);
         tabbedPane.addTab("Štatistiky", tab3);
         JPanel controlPanel = new JPanel();
         controlPanel.setLayout(new GridBagLayout());
@@ -197,7 +235,7 @@ public class SimulationGUI extends JFrame implements UserInterface {
         statsPanel.add(averageTimeTextField);
 
         // Obsahový panel s rozložením
-        JPanel contentPanel = new JPanel(new GridLayout(1, 3, 10, 10));
+        /* JPanel contentPanel = new JPanel(new GridLayout(1, 3, 10, 10));
         animationPanel.add(contentPanel, BorderLayout.CENTER);
 
         // Zamestnanci sekcia
@@ -230,14 +268,122 @@ public class SimulationGUI extends JFrame implements UserInterface {
         pack();
         RefineryUtilities.centerFrameOnScreen(this);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setVisible(true);
+        setVisible(true); */
+        JPanel contentPanel = new JPanel(new GridLayout(1, 3, 10, 10));
+        animationPanel.add(contentPanel, BorderLayout.CENTER);
 
+        // Sekcia so zamestnancami s JTable
+        String[] employeeColumns = {"Skupina", "Pozícia", "Stav"};
+        Object[][] employeeData = {};
+        employeesTable = new JTable(new DefaultTableModel(employeeData, employeeColumns));
+        JScrollPane employeesScroll = new JScrollPane(employeesTable);
+        employeesScroll.setBorder(BorderFactory.createTitledBorder("Činnosti zamestnancov"));
+        contentPanel.add(employeesScroll);
+
+        // Sekcia s objednávkami s JTable
+        String[] orderColumns = {"ID", "Typ", "Stav"};
+        Object[][] orderData = {};
+        ordersTable = new JTable(new DefaultTableModel(orderData, orderColumns));
+        JScrollPane ordersScroll = new JScrollPane(ordersTable);
+        ordersScroll.setBorder(BorderFactory.createTitledBorder("Všetky objednávky"));
+        contentPanel.add(ordersScroll);
+
+        // Sekcia s montážnymi miestami s JTable
+        String[] assemblyColumns = {"ID", "Stav"};
+        Object[][] assemblyData = {};
+        assemblyStationsTable = new JTable(new DefaultTableModel(assemblyData, assemblyColumns));
+        JScrollPane assemblyStationsScroll = new JScrollPane(assemblyStationsTable);
+        assemblyStationsScroll.setBorder(BorderFactory.createTitledBorder("ˇČinnosti na montážnych staniciach"));
+        contentPanel.add(assemblyStationsScroll);
+
+        // Pridanie frontsPanel do contentPanel
+        JPanel frontsPanel = new JPanel(new GridLayout(2, 4, 10, 10)); // Rozdelenie na 2 riadky a 4 stĺpce
+        animationPanel.add(frontsPanel, BorderLayout.NORTH);
+
+        // Cakajúce objednávky
+        String[] waitingOrderColumns = {"ID", "Typ", "Stav"};
+        Object[][] waitingOrderData = {};
+        waitingOrderTable = new JTable(new DefaultTableModel(waitingOrderData, waitingOrderColumns));
+        JScrollPane waitingOrderScroll = new JScrollPane(waitingOrderTable);
+        waitingOrderScroll.setBorder(BorderFactory.createTitledBorder("Cakajúce objednávky"));
+        frontsPanel.add(waitingOrderScroll);
+
+        // Voľní pracovníci A
+        String[] freeWorkerAColumns = {"Skupina", "Pozícia", "Stav"};
+        Object[][] freeWorkerAData = {};
+        freeWorkerATable = new JTable(new DefaultTableModel(freeWorkerAData, freeWorkerAColumns));
+        JScrollPane freeWorkerAScroll = new JScrollPane(freeWorkerATable);
+        freeWorkerAScroll.setBorder(BorderFactory.createTitledBorder("Voľní pracovníci A"));
+        frontsPanel.add(freeWorkerAScroll);
+
+        // Voľní pracovníci B
+        String[] freeWorkerBColumns = {"Skupina", "Pozícia", "Stav"};
+        Object[][] freeWorkerBData = {};
+        freeWorkerBTable = new JTable(new DefaultTableModel(freeWorkerBData, freeWorkerBColumns));
+        JScrollPane freeWorkerBScroll = new JScrollPane(freeWorkerBTable);
+        freeWorkerBScroll.setBorder(BorderFactory.createTitledBorder("Voľní pracovníci B"));
+        frontsPanel.add(freeWorkerBScroll);
+
+        // Voľní pracovníci C
+        String[] freeWorkerCColumns = {"Skupina", "Pozícia", "Stav"};
+        Object[][] freeWorkerCData = {};
+        freeWorkerCTable = new JTable(new DefaultTableModel(freeWorkerCData, freeWorkerCColumns));
+        JScrollPane freeWorkerCScroll = new JScrollPane(freeWorkerCTable);
+        freeWorkerCScroll.setBorder(BorderFactory.createTitledBorder("Voľní pracovníci C"));
+        frontsPanel.add(freeWorkerCScroll);
+
+        // Voľné montážne miesta
+        String[] freeAssemblyColumns = {"ID", "Stav"};
+        Object[][] freeAssemblyData = {};
+        freeAssemblyTable = new JTable(new DefaultTableModel(freeAssemblyData, freeAssemblyColumns));
+        JScrollPane freeAssemblyScroll = new JScrollPane(freeAssemblyTable);
+        freeAssemblyScroll.setBorder(BorderFactory.createTitledBorder("Voľné montážne miesta"));
+        frontsPanel.add(freeAssemblyScroll);
+
+        // Objednávky čakajúce na lakovanie
+        String[] waitingForPaintingColumns = {"ID", "Typ", "Stav"};
+        Object[][] waitingForPaintingData = {};
+        waitingForPaintingTable = new JTable(new DefaultTableModel(waitingForPaintingData, waitingForPaintingColumns));
+        JScrollPane waitingForPaintingScroll = new JScrollPane(waitingForPaintingTable);
+        waitingForPaintingScroll.setBorder(BorderFactory.createTitledBorder("Objednávky čakajúce na lakovanie"));
+        frontsPanel.add(waitingForPaintingScroll);
+
+        // Objednávky čakajúce na skladanie
+        String[] waitingForAssemblyColumns = {"ID", "Typ", "Stav"};
+        Object[][] waitingForAssemblyData = {};
+        waitingForAssemblyTable = new JTable(new DefaultTableModel(waitingForAssemblyData, waitingForAssemblyColumns));
+        JScrollPane waitingForAssemblyScroll = new JScrollPane(waitingForAssemblyTable);
+        waitingForAssemblyScroll.setBorder(BorderFactory.createTitledBorder("Objednávky čakajúce na skladanie"));
+        frontsPanel.add(waitingForAssemblyScroll);
+
+        // Objednávky čakajúce na montáž kovania
+        String[] waitingForHardwareColumns = {"ID", "Typ", "Stav"};
+        Object[][] waitingForHardwareData = {};
+        waitingForHardwareTable = new JTable(new DefaultTableModel(waitingForHardwareData, waitingForHardwareColumns));
+        JScrollPane waitingForHardwareScroll = new JScrollPane(waitingForHardwareTable);
+        waitingForHardwareScroll.setBorder(BorderFactory.createTitledBorder("Objednávky čakajúce na montáž kovania"));
+        frontsPanel.add(waitingForHardwareScroll);
+
+        setLayout(new BorderLayout());
+        add(controlPanel, BorderLayout.NORTH);
+        add(tabbedPane, BorderLayout.CENTER);
+        add(statsPanel, BorderLayout.SOUTH);
+
+        pack();
+        RefineryUtilities.centerFrameOnScreen(this);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setVisible(true);
     
     }
 
-    private Object pauseSimulation() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'pauseSimulation'");
+    private void pauseSimulation() {
+        if (this.pauseButton.getText() == "Pozastaviť") {
+            this.simulation.setPause(true);
+            this.pauseButton.setText("Pokračovať");
+        } else if (this.pauseButton.getText() == "Pokračovať") {
+            this.simulation.setPause(false);
+            this.pauseButton.setText("Pozastaviť");
+        }
     }
 
     private void startSimulation() {
@@ -264,18 +410,18 @@ public class SimulationGUI extends JFrame implements UserInterface {
         dataset.getSeries("Celkový čas spracovania objednávky").clear();
         Thread thread = new Thread(() -> {
             simulation = new FurnitureCompany(7171200, aEmployees, bEmployees, cEmployees);
-            switch (timeFactorString) {
-                case "Skutočný čas":
-                    simulation.setRealTimeMode();
-                    break;
-                case "0.5x Skutočný čas":
-                    simulation.setFastTimeMode();;
-                    break;
-                case "MAX rýchlosť":
-                    simulation.setMaxSpeedMode();
-                    break;
-                default:
-                    break;
+            if (timeFactorString.equals("MAX rýchlosť")) {
+                simulation.setMaxSpeedMode();
+            } else{
+                String number = extractNumber(timeFactorString);
+                if (number != null) {
+                    Integer timeFactor = Integer.parseInt(number);
+                    if (timeFactor == 0) {
+                        simulation.setTimeFactor(1.0);
+                    }else{
+                        simulation.setTimeFactor((1.0/timeFactor));
+                    }
+                } 
             }
             simulation.addUserInterface(this);
             simulation.runSimulation(totalReplications);
@@ -284,6 +430,16 @@ public class SimulationGUI extends JFrame implements UserInterface {
         }); 
         thread.start();   
     }  
+    public static String extractNumber(String str) {
+        Pattern pattern = Pattern.compile("(\\d+)(?=x)"); // Regulárny výraz na nájdenie čísla pred 'x'
+        Matcher matcher = pattern.matcher(str);
+        
+        if (matcher.find()) {
+            return matcher.group(1); 
+        }
+        
+        return null; 
+    }
     public void enableStartButton() {
         startButton.setEnabled(true);
     }
@@ -337,6 +493,7 @@ public class SimulationGUI extends JFrame implements UserInterface {
             }
             
         }
+        currentReplicationTextField.setText(String.valueOf(reps + 1));
         int SECONDS_IN_DAY = 86400;
         int SECONDS_IN_WEEK = 5 * SECONDS_IN_DAY;
 
@@ -362,37 +519,107 @@ public class SimulationGUI extends JFrame implements UserInterface {
         // Nastav text na požiadavku
         simulationTimeLabelTextField.setText("Týždeň: " + (week + 1) + ", Deň: " + daysOfTheWeek[day] + ", Čas: " 
                                             + String.format("%02d:%02d:%02d", hours, minutes, seconds));
-        employeesPanel.removeAll();
-        ordersPanel.removeAll();
-        assemblyStationsPanel.removeAll();
-
-        // Aktualizácia zamestnancov
+        
         ArrayList<Employee> allEmployees = new ArrayList<>();
         allEmployees.addAll(simulation.getEmployeesA());
         allEmployees.addAll(simulation.getEmployeesB());
         allEmployees.addAll(simulation.getEmployeesC());
+
+        // Vyčistíme existujúce údaje v tabuľke a pridáme nové
+        DefaultTableModel employeeTableModel = (DefaultTableModel) employeesTable.getModel();
+        employeeTableModel.setRowCount(0); // Odstráni existujúce riadky
         for (Employee employee : allEmployees) {
-            employeesPanel.add(createStyledLabel("Employee: " + employee.getType() + " - " + employee.getState()));
+            employeeTableModel.addRow(new Object[]{employee.getType(), employee.getCurrentPosition(), employee.getState()});
         }
 
         // Aktualizácia objednávok
+        DefaultTableModel orderTableModel = (DefaultTableModel) ordersTable.getModel();
+        orderTableModel.setRowCount(0); // Vymaže existujúce riadky
         for (Order order : simulation.getAllActiveOrders()) {
-            ordersPanel.add(createStyledLabel("Order: " + order.getID() + " - " + order.getState()));
+            orderTableModel.addRow(new Object[]{order.getID(), order.getType(), order.getState()});
         }
 
         // Aktualizácia montážnych miest
+        DefaultTableModel assemblyTableModel = (DefaultTableModel) assemblyStationsTable.getModel();
+        assemblyTableModel.setRowCount(0); // Vymaže existujúce riadky
         for (AssemblyStation station : simulation.getAllAssemblyStations()) {
-            assemblyStationsPanel.add(createStyledLabel("Assembly Station: " + station.getId() + " - " + station.getCurrentProcess()));
+            assemblyTableModel.addRow(new Object[]{station.getId(), station.getCurrentProcess()});
+        }
+        // Aktualizácia frontov
+        DefaultTableModel waitingOrderTableModel = (DefaultTableModel) waitingOrderTable.getModel();
+        waitingOrderTableModel.setRowCount(0); // Vymaže existujúce riadky
+        for (Order order : simulation.getWaitingOrdersQueue()) {
+            waitingOrderTableModel.addRow(new Object[]{order.getID(), order.getType(), order.getState()});
+        }
+        // Aktualizácia voľných pracovníkov A
+        DefaultTableModel freeWorkerATableModel = (DefaultTableModel) freeWorkerATable.getModel();
+        freeWorkerATableModel.setRowCount(0); // Vymaže existujúce riadky
+        for (Employee employee : simulation.getAvailableEmployeesA()) {
+            freeWorkerATableModel.addRow(new Object[]{employee.getType(), employee.getCurrentPosition(), employee.getState()});
+        }
+        // Aktualizácia voľných pracovníkov B
+        DefaultTableModel freeWorkerBTableModel = (DefaultTableModel) freeWorkerBTable.getModel();
+        freeWorkerBTableModel.setRowCount(0); // Vymaže existujúce riadky
+        for (Employee employee : simulation.getAvailableEmployeesB()) {
+            freeWorkerBTableModel.addRow(new Object[]{employee.getType(), employee.getCurrentPosition(), employee.getState()});
+        }
+        // Aktualizácia voľných pracovníkov C
+        DefaultTableModel freeWorkerCTableModel = (DefaultTableModel) freeWorkerCTable.getModel();
+        freeWorkerCTableModel.setRowCount(0); // Vymaže existujúce riadky
+        for (Employee employee : simulation.getAvailableEmployeesC()) {
+            freeWorkerCTableModel.addRow(new Object[]{employee.getType(), employee.getCurrentPosition(), employee.getState()});
+        }
+        // Aktualizácia voľných montážnych miest
+        DefaultTableModel freeAssemblyTableModel = (DefaultTableModel) freeAssemblyTable.getModel();
+        freeAssemblyTableModel.setRowCount(0); // Vymaže existujúce riadky
+        for (AssemblyStation station : simulation.getAvailableAssemblyStations()) {
+            freeAssemblyTableModel.addRow(new Object[]{station.getId(), station.getCurrentProcess()});
+        }
+        // Aktualizácia objednávok čakajúcich na lakovanie
+        DefaultTableModel waitingForPaintingTableModel = (DefaultTableModel) waitingForPaintingTable.getModel();
+        waitingForPaintingTableModel.setRowCount(0); // Vymaže existujúce riadky
+        for (Order order : simulation.getVarnishingWaitQueue()) {
+            waitingForPaintingTableModel.addRow(new Object[]{order.getID(), order.getType(), order.getState()});
+        }
+        // Aktualizácia objednávok čakajúcich na skladanie
+        DefaultTableModel waitingForAssemblyTableModel = (DefaultTableModel) waitingForAssemblyTable.getModel();
+        waitingForAssemblyTableModel.setRowCount(0); // Vymaže existujúce riadky
+        for (Order order : simulation.getAssemblingWaitQueue()) {
+            waitingForAssemblyTableModel.addRow(new Object[]{order.getID(), order.getType(), order.getState()});
+        }
+        // Aktualizácia objednávok čakajúcich na montáž kovania
+        DefaultTableModel waitingForHardwareTableModel = (DefaultTableModel) waitingForHardwareTable.getModel();
+        waitingForHardwareTableModel.setRowCount(0); // Vymaže existujúce riadky
+        for (Order order : simulation.getFittingWaitQueue()) {
+            waitingForHardwareTableModel.addRow(new Object[]{order.getID(), order.getType(), order.getState()});
         }
 
-        employeesPanel.revalidate();
-        employeesPanel.repaint();
-        ordersPanel.revalidate();
-        ordersPanel.repaint();
-        assemblyStationsPanel.revalidate();
-        assemblyStationsPanel.repaint();
+        // Obnovíme zobrazenie v tabuľkách
+        employeesTable.revalidate();
+        employeesTable.repaint();
+        ordersTable.revalidate();
+        ordersTable.repaint();
+        assemblyStationsTable.revalidate();
+        assemblyStationsTable.repaint();
+        waitingOrderTable.revalidate();
+        waitingOrderTable.repaint();
+        freeWorkerATable.revalidate();
+        freeWorkerATable.repaint();
+        freeWorkerBTable.revalidate();
+        freeWorkerBTable.repaint();
+        freeWorkerCTable.revalidate();
+        freeWorkerCTable.repaint();
+        freeAssemblyTable.revalidate();
+        freeAssemblyTable.repaint();
+        waitingForPaintingTable.revalidate();
+        waitingForPaintingTable.repaint();
+        waitingForAssemblyTable.revalidate();
+        waitingForAssemblyTable.repaint();
+        waitingForHardwareTable.revalidate();
+        waitingForHardwareTable.repaint();
+        
+        
     }
-
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(new FlatDarkLaf());
@@ -406,177 +633,3 @@ public class SimulationGUI extends JFrame implements UserInterface {
     }
 }
 
-
-/* 
-
-public class SimulationGUI extends JFrame implements UserInterface {
-    private FurnitureCompany simulation;
-    private JLabel simTimeLabel;
-    private JPanel employeesPanel;
-    private JPanel ordersPanel;
-    private JPanel assemblyStationsPanel;
-    private Timer updateTimer;
-    private JButton startButton;
-    private JButton stopButton;
-
-    public SimulationGUI() {
-        setTitle("Furniture Company Simulation");
-        setSize(1200, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10));
-
-        // Hlavný panel
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        add(mainPanel);
-
-        // Simulačný čas
-        simTimeLabel = new JLabel("Simulation Time: 0", SwingConstants.CENTER);
-        simTimeLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        mainPanel.add(simTimeLabel, BorderLayout.NORTH);
-
-        // Obsahový panel s rozložením
-        JPanel contentPanel = new JPanel(new GridLayout(1, 3, 10, 10));
-        mainPanel.add(contentPanel, BorderLayout.CENTER);
-
-        // Zamestnanci sekcia
-        employeesPanel = new JPanel();
-        employeesPanel.setLayout(new BoxLayout(employeesPanel, BoxLayout.Y_AXIS));
-        JScrollPane employeesScroll = new JScrollPane(employeesPanel);
-        employeesScroll.setBorder(BorderFactory.createTitledBorder("Employees"));
-        contentPanel.add(employeesScroll);
-
-        // Objednávky sekcia
-        ordersPanel = new JPanel();
-        ordersPanel.setLayout(new BoxLayout(ordersPanel, BoxLayout.Y_AXIS));
-        JScrollPane ordersScroll = new JScrollPane(ordersPanel);
-        ordersScroll.setBorder(BorderFactory.createTitledBorder("Orders"));
-        contentPanel.add(ordersScroll);
-
-        // Montážne miesta sekcia
-        assemblyStationsPanel = new JPanel();
-        assemblyStationsPanel.setLayout(new BoxLayout(assemblyStationsPanel, BoxLayout.Y_AXIS));
-        JScrollPane assemblyStationsScroll = new JScrollPane(assemblyStationsPanel);
-        assemblyStationsScroll.setBorder(BorderFactory.createTitledBorder("Assembly Stations"));
-        contentPanel.add(assemblyStationsScroll);
-
-        // Panel s tlačidlami
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
-
-        startButton = new JButton("Start Simulation");
-        startButton.setFont(new Font("Arial", Font.BOLD, 14));
-        startButton.setBackground(new Color(60, 179, 113));
-        startButton.setForeground(Color.WHITE);
-        startButton.setFocusPainted(false);
-        startButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                startSimulation();
-            }
-        });
-        buttonPanel.add(startButton);
-
-        stopButton = new JButton("Stop Simulation");
-        stopButton.setFont(new Font("Arial", Font.BOLD, 14));
-        stopButton.setBackground(new Color(220, 20, 60));
-        stopButton.setForeground(Color.WHITE);
-        stopButton.setFocusPainted(false);
-        stopButton.setEnabled(false);
-        stopButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stopSimulation();
-            }
-        });
-        buttonPanel.add(stopButton);
-    }
-    
-    private void startSimulation() {
-        simulation = new FurnitureCompany(7171200, 5, 5, 5);
-        simulation.addUserInterface(this);
-        new Thread(() -> simulation.runSimulation(1000)).start();
-        startButton.setEnabled(false);
-        stopButton.setEnabled(true);
-    }
-
-    private void stopSimulation() {
-        
-        simulation = null;
-        simTimeLabel.setText("Simulation Time: 0");
-        employeesPanel.removeAll();
-        ordersPanel.removeAll();
-        assemblyStationsPanel.removeAll();
-
-        employeesPanel.revalidate();
-        employeesPanel.repaint();
-        ordersPanel.revalidate();
-        ordersPanel.repaint();
-        assemblyStationsPanel.revalidate();
-        assemblyStationsPanel.repaint();
-
-        startButton.setEnabled(true);
-        stopButton.setEnabled(false);
-    }
-
-    private void updateGUI() {
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            e.printStackTrace();
-        }
-        if (simulation == null) return;
-        simTimeLabel.setText("Simulation Time: " + simulation.getCurrentTime());
-        employeesPanel.removeAll();
-        ordersPanel.removeAll();
-        assemblyStationsPanel.removeAll();
-
-        // Aktualizácia zamestnancov
-        ArrayList<Employee> allEmployees = new ArrayList<>();
-        allEmployees.addAll(simulation.getEmployeesA());
-        allEmployees.addAll(simulation.getEmployeesB());
-        allEmployees.addAll(simulation.getEmployeesC());
-        for (Employee employee : allEmployees) {
-            employeesPanel.add(createStyledLabel("Employee: " + employee.getType() + " - " + employee.getState()));
-        }
-
-        // Aktualizácia objednávok
-        for (Order order : simulation.getAllActiveOrders()) {
-            ordersPanel.add(createStyledLabel("Order: " + order.getID() + " - " + order.getState()));
-        }
-
-        // Aktualizácia montážnych miest
-        for (AssemblyStation station : simulation.getAllAssemblyStations()) {
-            assemblyStationsPanel.add(createStyledLabel("Assembly Station: " + station.getId() + " - " + station.getCurrentProcess()));
-        }
-
-        employeesPanel.revalidate();
-        employeesPanel.repaint();
-        ordersPanel.revalidate();
-        ordersPanel.repaint();
-        assemblyStationsPanel.revalidate();
-        assemblyStationsPanel.repaint();
-    }
-
-    private JLabel createStyledLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Arial", Font.PLAIN, 14));
-        label.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        return label;
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            SimulationGUI gui = new SimulationGUI();
-            gui.setVisible(true);
-        });
-    }
-
-    @Override
-    public void refresh(EventSimulationCore simulationCore) {
-        updateGUI();
-    }
-}
- */
