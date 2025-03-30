@@ -19,7 +19,6 @@ public class AssemblyStart extends EmpFurnitureEvent{
     @Override
     public void execute() {
         super.execute();
-        System.out.println("Assembly start");
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
         getEmployee().setState(EmployeeState.MOVING);
         double moveTime = 0;
@@ -29,7 +28,12 @@ public class AssemblyStart extends EmpFurnitureEvent{
                 getEmployee().setPosition(Position.ASSEMBLY_STATION);
                 break;
             case ASSEMBLY_STATION:
-                moveTime = getTime() + sim.getStationMoveTime();
+                if(getEmployee().getStation() == getOrder().getStation()){
+                    moveTime = getTime();
+                }
+                else{
+                    moveTime = getTime() + sim.getStationMoveTime();
+                }
                 break;
             default:
                 break;

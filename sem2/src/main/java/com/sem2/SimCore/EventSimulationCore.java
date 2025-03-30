@@ -18,7 +18,7 @@ public class EventSimulationCore extends SimulationCore {
     private boolean stop;
     private boolean pause;
     private ArrayList<UserInterface> userInterfaces = new ArrayList<>();
-    private double timeFactor = 1.0;
+    private double timeFactor = 0.0;
    
     EventSimulationCore(double maxSimulationTime) {
         eventCalendar = new PriorityQueue<Event>();
@@ -103,7 +103,7 @@ public class EventSimulationCore extends SimulationCore {
     protected void beforeSimRun() {
        
         super.beforeSimRun();
-        eventCalendar.add(new SystemEvent(currentTime, this));
+        //eventCalendar.add(new SystemEvent(currentTime, this));
     }
     @Override
     protected void executeSimRun() {

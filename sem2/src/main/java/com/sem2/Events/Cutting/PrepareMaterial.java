@@ -18,7 +18,6 @@ public class PrepareMaterial extends EmpFurnitureEvent{
     @Override
     public void execute() {
         super.execute();
-        System.out.println("Prepare material start");
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
         double prepTime = getTime() + sim.getMatPrepTime();
         getEmployee().setState(EmployeeState.PREPARING_MATERIAL);

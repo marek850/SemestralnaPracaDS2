@@ -2,6 +2,7 @@ package com.sem2.SimCore;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Random;
 
 import com.sem2.Events.Event;
@@ -22,7 +23,13 @@ public class FurnitureCompany extends EventSimulationCore{
     private int lastStationId = 0;
     private ArrayList<Order> allActiveOrders = new ArrayList<>();
     private Statistic orderFinishTime = new Statistic();
-
+    private Statistic chairCutting = new Statistic();
+    public Statistic getChairCutting() {
+        return chairCutting;
+    }
+    public void setChairCutting(Statistic chairCutting) {
+        this.chairCutting = chairCutting;
+    }
     public Statistic getOrderFinishTime() {
         return orderFinishTime;
     }
@@ -72,8 +79,8 @@ public class FurnitureCompany extends EventSimulationCore{
     public ArrayList<Employee> getAvailableEmployeesC() {
         return availableEmployeesC;
     }
-    private ArrayList<AssemblyStation> availableAssemblyStations = new ArrayList<>();
-    public ArrayList<AssemblyStation> getAvailableAssemblyStations() {
+    private PriorityQueue<AssemblyStation> availableAssemblyStations = new PriorityQueue<AssemblyStation>();
+    public PriorityQueue<AssemblyStation> getAvailableAssemblyStations() {
         return availableAssemblyStations;
     }
     private ArrayList<AssemblyStation> allAssemblyStations = new ArrayList<>();
@@ -89,17 +96,17 @@ public class FurnitureCompany extends EventSimulationCore{
     private TriangularGenerator materialPrepTimGen = new TriangularGenerator(seedGenerator, 300, 900, 500);
     //Stoly
     private ContinuousGenerator tableCutTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{10.0 * 60, 25.0 * 60},new double[]{25.0 * 60, 50.0 * 60}), List.of(0.6, 0.4));
-    private ContinuousGenerator tableVarnTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{200.0 * 60, 611.0 *60}), List.of(1.0));
-    private ContinuousGenerator tableAssembleTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{30.0*60, 61.0*60}), List.of(1.0));
+    private ContinuousGenerator tableVarnTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{200.0 * 60, 36601}), List.of(1.0));
+    private ContinuousGenerator tableAssembleTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{30.0*60, 3601}), List.of(1.0));
     //Stolicky
-    private ContinuousGenerator chairCutTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{12.0*60, 17.0*60}), List.of(1.0));
-    private ContinuousGenerator chairVarnTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{210.0 * 60, 541.0*60}), List.of(1.0));
-    private ContinuousGenerator chairAssembleTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{14.0*60, 25.0*60}), List.of(1.0));
+    private ContinuousGenerator chairCutTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{12.0*60, 961}), List.of(1.0));
+    private ContinuousGenerator chairVarnTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{210.0 * 60, 32401}), List.of(1.0));
+    private ContinuousGenerator chairAssembleTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{14.0*60, 1441}), List.of(1.0));
     //Skrine
-    private ContinuousGenerator wardrobeCutTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{15.0*60, 81.0*60}), List.of(1.0));
-    private ContinuousGenerator wardrobeVarnTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{600.0*60, 701.0*60}), List.of(1.0));
-    private ContinuousGenerator wardrobeAssembleTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{35.0*60, 76.0*60}), List.of(1.0));
-    private ContinuousGenerator wardrobeFittingTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{15.0*60, 26.0*60}), List.of(1.0));
+    private ContinuousGenerator wardrobeCutTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{15.0*60, 4801}), List.of(1.0));
+    private ContinuousGenerator wardrobeVarnTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{600.0*60, 42001}), List.of(1.0));
+    private ContinuousGenerator wardrobeAssembleTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{35.0*60, 4501}), List.of(1.0));
+    private ContinuousGenerator wardrobeFittingTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{15.0*60, 37501}), List.of(1.0));
 
     private DiscreteGenerator orderTypeGen = new DiscreteGenerator(seedGenerator, List.of(new int[]{0, 100}), List.of(1.0));
 
@@ -247,13 +254,7 @@ public class FurnitureCompany extends EventSimulationCore{
         availableAssemblyStations.add(station);
     }
     public AssemblyStation getBestAssemblyStation(){
-        AssemblyStation bestStation = availableAssemblyStations.get(0);
-        for (AssemblyStation station : availableAssemblyStations) {
-            if (station.getId() < bestStation.getId()) {
-                bestStation = station;
-            }
-        }
-        return bestStation;
+        return availableAssemblyStations.poll();
     }
     public int getLastStationId() {
         return lastStationId;
@@ -302,6 +303,7 @@ public class FurnitureCompany extends EventSimulationCore{
         allActiveOrders.clear();
         allAssemblyStations.clear();
         System.out.println("Average order processing time: " + orderFinishTime.getAverage() + " seconds.");
+        System.out.println("Average chair cutting time: " + chairCutting.getAverage() + " seconds.");
         /* 
         System.out.println("Average order processing time: " + orderFinishTime.getAverage() + " seconds.");
         System.out.println("Average order processing time: " + orderFinishTime.getAverage()/60 + " minutes.");

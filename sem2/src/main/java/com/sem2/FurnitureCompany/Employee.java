@@ -11,11 +11,18 @@ public class Employee {
     
     private Position position;
     private EmployeeType type;
-    private int stationNumber;
+    private AssemblyStation station;
+    public AssemblyStation getStation() {
+        return station;
+    }
+    public void setStation(AssemblyStation station) {
+        this.station = station;
+    }
     public Employee(EmployeeType type) {
         this.type = type;
         this.state = EmployeeState.IDLE;
         this.position = Position.STORAGE;
+        this.station = null;
     }
     public EmployeeType getType() {
         return type;

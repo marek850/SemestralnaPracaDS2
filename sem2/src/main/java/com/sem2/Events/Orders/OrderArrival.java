@@ -24,37 +24,35 @@ public class OrderArrival extends BasicFurnitureEvent{
     @Override
     public void execute() {
         super.execute();
-        System.out.println("Arrival");
-        FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
         
-        Order order = creatOrder(sim);
-        order.setState(OrderState.PENDING);
-        order.setArrivalTime(getTime());
+        FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
+        Order order = createOrder(sim);
         sim.addActiveOrder(order);
-        sim.addOrder(order);
-        if (sim.isAAvailable() && sim.isOrderWaitingForCutting()) {
-            order = sim.getOrderWaitingForCutting();
-            if (sim.isAvailableStation()) {
-                order.setStation(sim.getBestAssemblyStation());
-            } else {
-                AssemblyStation station = new AssemblyStation(sim.getLastStationId() + 1);
-                sim.setLastStationId(station.getId());
-                station.setCurrentProcess(Process.CUTTING);
-                sim.addStation(station);
-                order.setStation(station);
-            }
-            Employee availableEmployee = sim.getAAvailable();
-            availableEmployee.setState(EmployeeState.MOVING);
-            MoveToStorage moveToStorage = new MoveToStorage(getTime(), sim, availableEmployee, order);
-            sim.addEvent(moveToStorage);
-        } 
-        System.out.println(order.getStation());
-        OrderArrival orderArrival = new OrderArrival(getTime() + sim.getOrderArrivalTime(), this.getSimulationCore());
-        sim.addEvent(orderArrival);
-        sim.refreshGUI();
+        order.setArrivalTime(getTime());
+        if (sim.isAvailableStation()) {
+            order.setStation(sim.getBestAssemblyStation());
+        } else {
+            AssemblyStation station = new AssemblyStation(sim.getLastStationId() + 1);
+            sim.setLastStationId(station.getId());
+            //station.setCurrentProcess(Process.CUTTING);
+            sim.addStation(station);
+            order.setStation(station);
+            //order.setState(OrderState.BEING_CUT);
+        }
+        if (sim.isAAvailable()) {
+            Employee handlingEmployee = sim.getAAvailable();
+            order.getStation().setCurrentProcess(Process.CUTTING);
+            order.setState(OrderState.BEING_CUT);
+            
+            sim.addEvent(new MoveToStorage(getTime(), sim, handlingEmployee, order));
+        } else {
+            sim.addOrder(order);
+            order.setState(OrderState.PENDING);
+        }
+        sim.addEvent(new OrderArrival(getTime() + sim.getOrderArrivalTime(), sim));
     }
 
-    private Order creatOrder(FurnitureCompany sim) {
+    private Order createOrder(FurnitureCompany sim) {
         int orderTypeDecider = sim.getOrderType();
         FurnitureType orderType = null;
         if (orderTypeDecider >= 0 && orderTypeDecider < 50) {

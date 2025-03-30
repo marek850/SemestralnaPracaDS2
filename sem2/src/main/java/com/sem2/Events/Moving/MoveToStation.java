@@ -25,7 +25,6 @@ public class MoveToStation extends EmpFurnitureEvent{
     public void execute() {
         super.execute();
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
-        System.out.println("Move to station");
         
 
         switch (getEmployee().getType()) {
@@ -39,7 +38,11 @@ public class MoveToStation extends EmpFurnitureEvent{
 
                         break;
                     case ASSEMBLY_STATION:
-                        moveTime = getTime() + sim.getStationMoveTime();
+                        if (getEmployee().getStation() == getOrder().getStation()) {
+                            moveTime = getTime();
+                        }else{
+                            moveTime = getTime() + sim.getStationMoveTime();
+                        }
                         break;
                     default:
                         break;
@@ -65,9 +68,9 @@ public class MoveToStation extends EmpFurnitureEvent{
                     sim.addEvent(fitting);
                 } else {
                     getEmployee().setState(EmployeeState.VARNISHING);
-                    VarnishingEnd varnishingEnd = new VarnishingEnd(getTime() + sim.getVarnishingTime(getOrder()), sim, getEmployee(), getOrder());
                     getOrder().setState(OrderState.BEING_VARNISHED);
                     getOrder().getStation().setCurrentProcess(Process.VARNISHING);
+                    VarnishingEnd varnishingEnd = new VarnishingEnd(getTime() + sim.getVarnishingTime(getOrder()), sim, getEmployee(), getOrder());    
                     sim.addEvent(varnishingEnd);
                 }
                 break;

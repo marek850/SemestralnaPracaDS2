@@ -7,6 +7,7 @@ import com.sem2.FurnitureCompany.AssemblyStation;
 import com.sem2.FurnitureCompany.Employee;
 import com.sem2.FurnitureCompany.Order;
 import com.sem2.FurnitureCompany.Enums.EmployeeState;
+import com.sem2.FurnitureCompany.Enums.FurnitureType;
 import com.sem2.FurnitureCompany.Enums.OrderState;
 import com.sem2.FurnitureCompany.Enums.Process;
 import com.sem2.SimCore.EventSimulationCore;
@@ -21,29 +22,34 @@ public class CuttingEnd extends EmpFurnitureEvent{
     @Override
     public void execute() {
         super.execute();
-        System.out.println("Cutting end");
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
-        sim.freeEmployee(getEmployee());
-        getOrder().setState(OrderState.WAITING_FOR_VARNISH);
-        sim.addOrderForVarnish(getOrder());
-        if (sim.isCAvailable()) {
-            VarnishingStart varnishingStart = new VarnishingStart(getTime(), sim, sim.getCAvailable(), sim.getOrderWaitingForVarnish());
-            sim.addEvent(varnishingStart);
-        } 
-
-        if(sim.isAAvailable() && sim.isOrderWaitingForCutting()){
-            Order order = sim.getOrderWaitingForCutting();
+        if (getOrder().getType() == FurnitureType.CHAIR) {
+            sim.getChairCutting().addValue(getTime() - getOrder().getArrivalTime());
+        }
+        
+        if (sim.isOrderWaitingForCutting()) {
+            Order waitingOrder = sim.getOrderWaitingForCutting();
+            waitingOrder.setState(OrderState.PREPARING_MATERIAL);
             if (sim.isAvailableStation()) {
-                order.setStation(sim.getBestAssemblyStation());
-            } else {
-                AssemblyStation station = new AssemblyStation(sim.getLastStationId() + 1);
-                sim.setLastStationId(station.getId());
-                station.setCurrentProcess(Process.CUTTING);
-                sim.addStation(station);
-                order.setStation(station);
+                waitingOrder.setStation(sim.getBestAssemblyStation());
+                waitingOrder.getStation().setCurrentProcess(Process.NONE);
+            }else {
+                waitingOrder.setStation(new AssemblyStation(sim.getLastStationId() + 1));
+                sim.setLastStationId(waitingOrder.getStation().getId());
+                waitingOrder.getStation().setCurrentProcess(Process.NONE);
             }
-            MoveToStorage moveToStorageTask = new MoveToStorage(getTime(), sim, sim.getAAvailable(), order);
-            sim.addEvent(moveToStorageTask);
+            
+        } else{
+            getEmployee().setState(EmployeeState.IDLE);
+            sim.freeEmployee(getEmployee());
+        }
+        if (sim.isCAvailable()) {
+            Employee handlingEmployee = sim.getCAvailable();
+            VarnishingStart varnishingStart = new VarnishingStart(getTime() + sim.getVarnishingTime(getOrder()), sim, handlingEmployee, getOrder());
+            sim.addEvent(varnishingStart);
+        } else {
+            getOrder().setState(OrderState.WAITING_FOR_VARNISH);
+            sim.addOrderForVarnish(getOrder());
         }
         sim.refreshGUI();
     }

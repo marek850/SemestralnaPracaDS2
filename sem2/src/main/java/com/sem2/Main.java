@@ -12,10 +12,10 @@ import com.sem2.SimCore.TicketsSim;
 
 public class Main {
     public static void main(String[] args) {
-        /* Random seed = new Random();
+        Random seed = new Random();
         
         // Triangular distribution parameters
-        double min = 1.0, max = 10.0, mode = 5.0;
+        double min = 300, max = 900, mode = 500;
         TriangularGenerator triangularGen = new TriangularGenerator(seed, min, max, mode);
         
         // Exponential distribution parameter (mean)
@@ -23,10 +23,10 @@ public class Main {
         ExponentialGenerator exponentialGen = new ExponentialGenerator(seed, mean);
         
         generateSamples(triangularGen, "triangular_data.txt");
-        generateSamples(exponentialGen, "exponential_data.txt"); */
-        /* TicketsSim sim = new TicketsSim(Double.MAX_VALUE);
+        generateSamples(exponentialGen, "exponential_data.txt"); 
+         /* TicketsSim sim = new TicketsSim(Double.MAX_VALUE);
         sim.runSimulation(1); */
-        FurnitureCompany sim = new FurnitureCompany(7171200,5,5,5);
+        FurnitureCompany sim = new FurnitureCompany(7171200,30,3,18);
         sim.setMaxSpeedMode();
         sim.runSimulation(1000);
         

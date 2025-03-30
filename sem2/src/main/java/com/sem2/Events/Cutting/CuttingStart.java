@@ -18,7 +18,6 @@ public class CuttingStart extends EmpFurnitureEvent{
     @Override
     public void execute() {
         super.execute();
-        System.out.println("Cutting start");
         
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
         getEmployee().setState(EmployeeState.CUTTING);

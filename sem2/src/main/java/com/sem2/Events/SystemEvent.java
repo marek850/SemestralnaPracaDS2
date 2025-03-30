@@ -19,28 +19,21 @@ public class SystemEvent extends Event{
     public void execute() {
         double timeFactor = getSimulationCore().getTimeFactor();
         
-        // Určujeme čas podľa timeFactor:
         double simulatedTimeToRealTime;
-        if (timeFactor == Constants.MAX_SPEED) {
-            // Maximálna rýchlosť - bez spomalenia, ihneď
+        if (Math.abs(timeFactor - Constants.MAX_SPEED) < Constants.epsilon) {
             simulatedTimeToRealTime = 0.0;
         } else {
-            // Ostatné režimy
-            simulatedTimeToRealTime = 0.2 * timeFactor;
+            simulatedTimeToRealTime = 0.5 * timeFactor;
         }
-
         try {
             if (simulatedTimeToRealTime > 0) {
-                // Vykonáme spomalenie v reálnom čase
-                Thread.sleep((long)(simulatedTimeToRealTime * 1000)); // sleep je v milisekundách
+                Thread.sleep((long)(simulatedTimeToRealTime * 1000)); 
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         getSimulationCore().refreshGUI();
-        getSimulationCore().setCurrentTime(getTime());
-        // Pridáme nový SystemEvent s upraveným časom
-        SystemEvent newEvent = new SystemEvent(getTime() + 0.2, getSimulationCore());
+        SystemEvent newEvent = new SystemEvent(getTime() + 0.5, getSimulationCore());
         getSimulationCore().addEvent(newEvent);
     }
     

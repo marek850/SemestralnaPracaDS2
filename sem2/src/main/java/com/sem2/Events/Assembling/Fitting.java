@@ -4,6 +4,7 @@ import com.sem2.Events.EmpFurnitureEvent;
 import com.sem2.Events.Orders.FinalizeOrder;
 import com.sem2.FurnitureCompany.Employee;
 import com.sem2.FurnitureCompany.Order;
+import com.sem2.FurnitureCompany.Enums.EmployeeState;
 import com.sem2.FurnitureCompany.Enums.OrderState;
 import com.sem2.SimCore.EventSimulationCore;
 import com.sem2.SimCore.FurnitureCompany;
@@ -19,6 +20,9 @@ public class Fitting extends EmpFurnitureEvent{
         super.execute();
         System.out.println("Fitting start");
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
+        sim.freeEmployee(getEmployee());
+        getEmployee().setState(EmployeeState.IDLE);
+        getOrder().setState(OrderState.FINISHED);
         FinalizeOrder finalizeOrder = new FinalizeOrder(getTime(), sim, getEmployee(), getOrder());
         sim.addEvent(finalizeOrder);
     }

@@ -19,7 +19,6 @@ public class VarnishingStart extends EmpFurnitureEvent{
     @Override
     public void execute() {
         super.execute();
-        System.out.println("Varnishing start");
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
         getOrder().setState(OrderState.BEING_VARNISHED);
         getEmployee().setState(EmployeeState.MOVING);
@@ -29,7 +28,12 @@ public class VarnishingStart extends EmpFurnitureEvent{
                 moveTime = getTime() + sim.getStorageMoveTime();
                 break;
             case ASSEMBLY_STATION:
-                moveTime = getTime() + sim.getStationMoveTime();
+                if(getEmployee().getStation() == getOrder().getStation()){
+                    moveTime = getTime();
+                }
+                else{
+                    moveTime = getTime() + sim.getStationMoveTime();
+                }
                 break;
             default:
                 break;

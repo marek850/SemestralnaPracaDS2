@@ -19,8 +19,6 @@ public class MoveToStorage extends EmpFurnitureEvent{
     @Override
     public void execute() {
         super.execute();
-        System.out.println("Move to storage");
-        getOrder().setState(OrderState.PREPARING_MATERIAL);
         double moveTime = 0;
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
         switch (getEmployee().getCurrentPosition()) {
