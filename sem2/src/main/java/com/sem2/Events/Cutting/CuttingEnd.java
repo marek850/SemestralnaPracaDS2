@@ -1,14 +1,18 @@
 package com.sem2.Events.Cutting;
 
 import com.sem2.Events.EmpFurnitureEvent;
+import com.sem2.Events.Assembling.Fitting;
+import com.sem2.Events.Moving.MoveToStation;
 import com.sem2.Events.Moving.MoveToStorage;
-import com.sem2.Events.Varnishing.VarnishingStart;
+import com.sem2.Events.Varnishing.VarnishingEnd;
 import com.sem2.FurnitureCompany.AssemblyStation;
 import com.sem2.FurnitureCompany.Employee;
 import com.sem2.FurnitureCompany.Order;
 import com.sem2.FurnitureCompany.Enums.EmployeeState;
+import com.sem2.FurnitureCompany.Enums.EmployeeType;
 import com.sem2.FurnitureCompany.Enums.FurnitureType;
 import com.sem2.FurnitureCompany.Enums.OrderState;
+import com.sem2.FurnitureCompany.Enums.Position;
 import com.sem2.FurnitureCompany.Enums.Process;
 import com.sem2.SimCore.EventSimulationCore;
 import com.sem2.SimCore.FurnitureCompany;
@@ -21,36 +25,113 @@ public class CuttingEnd extends EmpFurnitureEvent{
     }
     @Override
     public void execute() {
-        super.execute();
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
-        if (getOrder().getType() == FurnitureType.CHAIR) {
-            sim.getChairCutting().addValue(getTime() - getOrder().getArrivalTime());
+        getOrder().passedEvents += "CuttingEnd,";
+        if (getOrder().getID() == 1631598044) {
+            System.out.println();
         }
-        
+        Employee finishedEmployee = getEmployee();
+        if(finishedEmployee.getState() != EmployeeState.CUTTING) {
+            throw new IllegalStateException("Employee must be cutting when arriving -CuttingEnd 1");
+            
+        }
+        if (getOrder().getState() != OrderState.BEING_CUT) {
+            throw new IllegalStateException("Order must be cutting when arriving -CuttingEnd 2");
+            
+        }
+        finishedEmployee.setState(EmployeeState.IDLE);
+        getOrder().setState(OrderState.CUT);
+
+        //Ak caka objednvka na rezanie tak rovno utilizujem zamestnanca skupiny A
         if (sim.isOrderWaitingForCutting()) {
             Order waitingOrder = sim.getOrderWaitingForCutting();
-            waitingOrder.setState(OrderState.PREPARING_MATERIAL);
+            sim.getWaitingOrders().addData(sim.getWaitingOrdersQueue().size(), getTime() - sim.getWaitingOrderQueueChangeTime());
+            sim.setWaitingOrderQueueChangeTime(getTime());
+            if(waitingOrder.getState() != OrderState.PENDING) {
+                throw new IllegalStateException("Order must be waiting for cutting when arriving -CuttingEnd 3");
+                
+            }
             if (sim.isAvailableStation()) {
                 waitingOrder.setStation(sim.getBestAssemblyStation());
-                waitingOrder.getStation().setCurrentProcess(Process.NONE);
-            }else {
-                waitingOrder.setStation(new AssemblyStation(sim.getLastStationId() + 1));
-                sim.setLastStationId(waitingOrder.getStation().getId());
-                waitingOrder.getStation().setCurrentProcess(Process.NONE);
+            } else {
+                AssemblyStation station = new AssemblyStation(sim.getLastStationId() + 1);
+                sim.setLastStationId(station.getId());
+                sim.addStation(station);
+                waitingOrder.setStation(station);
             }
-            
-        } else{
-            getEmployee().setState(EmployeeState.IDLE);
-            sim.freeEmployee(getEmployee());
-        }
-        if (sim.isCAvailable()) {
-            Employee handlingEmployee = sim.getCAvailable();
-            VarnishingStart varnishingStart = new VarnishingStart(getTime() + sim.getVarnishingTime(getOrder()), sim, handlingEmployee, getOrder());
-            sim.addEvent(varnishingStart);
+            waitingOrder.getStation().setCurrentProcess(Process.NONE);
+            finishedEmployee.setState(EmployeeState.MOVING);
+
+            MoveToStorage moveToStorage = new MoveToStorage(getTime() + sim.getStorageMoveTime(), sim, finishedEmployee, waitingOrder);
+            sim.addEvent(moveToStorage);
         } else {
+            sim.freeEmployee(finishedEmployee);
+        }
+
+        //Primarne spracujem objednavku cakajucu na montaz kovani
+        if (sim.isCAvailable() && sim.isOrderWaitingForFitting()) {
+            Order waitingOrder = sim.getOrderWaitingForFitting();
+            waitingOrder.getStation().setCurrentProcess(Process.NONE);
+            Employee freeEmployee = sim.getCAvailable();
+            freeEmployee.setWorking(true, getTime());
+            if (freeEmployee.getCurrentPosition() == Position.ASSEMBLY_STATION && freeEmployee.getStation() == waitingOrder.getStation()) {
+                freeEmployee.setState(EmployeeState.FITTING);
+                waitingOrder.setState(OrderState.BEING_FITTED);
+                waitingOrder.getStation().setCurrentProcess(Process.FITTING);
+                Fitting fitting = new Fitting(getTime() + sim.getFittingTime(), sim, freeEmployee, waitingOrder);
+                sim.addEvent(fitting);
+            } else if(freeEmployee.getCurrentPosition() == Position.ASSEMBLY_STATION && freeEmployee.getStation() != waitingOrder.getStation()){
+                freeEmployee.setState(EmployeeState.MOVING);
+                if (freeEmployee.getType() != EmployeeType.C || waitingOrder.getState() != OrderState.ASSEMBLED) {
+                    throw new IllegalStateException("Employee type C with waiting order cannot be here-cuttingEnd 1");
+                    
+                }
+                
+                MoveToStation moveToStation = new MoveToStation(getTime() + sim.getStationMoveTime(), sim, freeEmployee, waitingOrder);
+                sim.addEvent(moveToStation);
+            } else {
+                if (freeEmployee.getType() != EmployeeType.C || waitingOrder.getState() != OrderState.ASSEMBLED) {
+                    throw new IllegalStateException("Employee type C with waiting order cannot be here-cuttingEnd 1");
+                    
+                }
+                freeEmployee.setState(EmployeeState.MOVING);
+                MoveToStorage moveToStorage = new MoveToStorage(getTime() + sim.getStorageMoveTime(), sim, freeEmployee, waitingOrder);
+                sim.addEvent(moveToStorage);
+            }
+        }
+       
+        else if (sim.isCAvailable()){
+            if (getOrder().getState() != OrderState.CUT) {
+                throw new IllegalStateException("Order must be cut when arriving -CuttingEnd 3");
+                
+            }
+            Employee freeEmployee = sim.getCAvailable();
+            /* if (freeEmployee.getState() != EmployeeState.IDLE) {
+                throw new IllegalStateException("Employee C must be idle when he is available-CuttingEnd 4");
+                
+            } */
+            freeEmployee.setWorking(true, getTime());
+            if (freeEmployee.getCurrentPosition() == Position.ASSEMBLY_STATION && freeEmployee.getStation() == getOrder().getStation()) {
+                freeEmployee.setState(EmployeeState.VARNISHING);
+                getOrder().setState(OrderState.BEING_VARNISHED);
+                getOrder().getStation().setCurrentProcess(Process.VARNISHING);
+                VarnishingEnd varnish = new VarnishingEnd(getTime() + sim.getVarnishingTime(getOrder()), sim, freeEmployee, getOrder());
+                sim.addEvent(varnish);
+            } else if(freeEmployee.getCurrentPosition() == Position.ASSEMBLY_STATION && freeEmployee.getStation() != getOrder().getStation()){
+                freeEmployee.setState(EmployeeState.MOVING);
+                
+                MoveToStation moveToStation = new MoveToStation(getTime() + sim.getStationMoveTime(), sim, freeEmployee, getOrder());
+                sim.addEvent(moveToStation);
+            } else if (freeEmployee.getCurrentPosition() == Position.STORAGE) {
+                freeEmployee.setState(EmployeeState.MOVING);
+                MoveToStorage moveToStorage = new MoveToStorage(getTime() + sim.getStorageMoveTime(), sim, freeEmployee, getOrder());
+                sim.addEvent(moveToStorage);
+            }
+        } else{
             getOrder().setState(OrderState.WAITING_FOR_VARNISH);
+            getOrder().getStation().setCurrentProcess(Process.NONE);
+            getOrder().passedEvents += "varnishQueue,";
             sim.addOrderForVarnish(getOrder());
         }
-        sim.refreshGUI();
     }
 }

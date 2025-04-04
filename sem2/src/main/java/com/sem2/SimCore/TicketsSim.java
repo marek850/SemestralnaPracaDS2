@@ -9,7 +9,7 @@ import com.sem2.Events.TicketSelling.CustomerArrival;
 import com.sem2.FurnitureCompany.Customer;
 import com.sem2.Generators.ExponentialGenerator;
 import com.sem2.Statistics.Statistic;
-import com.sem2.Statistics.TicketsStatistics;
+import com.sem2.Statistics.WeightStatistics;
 
 public class TicketsSim extends EventSimulationCore{
     private ArrayList<Customer> customers = new ArrayList<Customer>();
@@ -21,8 +21,8 @@ public class TicketsSim extends EventSimulationCore{
     private int queueLength;
     private Statistic statistic;
     private Statistic runStatistic;
-    private TicketsStatistics ticketsStatistics;
-    private TicketsStatistics runTicketsStatistics;
+    private WeightStatistics ticketsStatistics;
+    private WeightStatistics runTicketsStatistics;
     public TicketsSim(double maxSimulationTime) {
         super(maxSimulationTime);
         arrivalGenerator = new ExponentialGenerator(seedGenerator, 5);
@@ -31,13 +31,13 @@ public class TicketsSim extends EventSimulationCore{
         this.queueLength = 0;
         statistic = new Statistic();
         runStatistic = new Statistic();
-        ticketsStatistics = new TicketsStatistics();
-        runTicketsStatistics = new TicketsStatistics();
+        ticketsStatistics = new WeightStatistics();
+        runTicketsStatistics = new WeightStatistics();
     }
-    public TicketsStatistics getRunTicketsStatistics() {
+    public WeightStatistics getRunTicketsStatistics() {
         return runTicketsStatistics;
     }
-    public void setRunTicketsStatistics(TicketsStatistics runTicketsStatistics) {
+    public void setRunTicketsStatistics(WeightStatistics runTicketsStatistics) {
         this.runTicketsStatistics = runTicketsStatistics;
     }
     public int getQueueLength() {
@@ -52,10 +52,10 @@ public class TicketsSim extends EventSimulationCore{
     public void setLastQueueChangeTime(double lastQueueChangeTime) {
         this.lastQueueChangeTime = lastQueueChangeTime;
     }
-    public TicketsStatistics getTicketsStatistics() {
+    public WeightStatistics getTicketsStatistics() {
         return ticketsStatistics;
     }
-    public void setTicketsStatistics(TicketsStatistics ticketsStatistics) {
+    public void setTicketsStatistics(WeightStatistics ticketsStatistics) {
         this.ticketsStatistics = ticketsStatistics;
     }
     public Statistic getStatistic() {

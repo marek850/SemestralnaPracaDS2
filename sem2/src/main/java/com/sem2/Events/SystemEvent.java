@@ -19,22 +19,19 @@ public class SystemEvent extends Event{
     public void execute() {
         double timeFactor = getSimulationCore().getTimeFactor();
         
-        double simulatedTimeToRealTime;
-        if (Math.abs(timeFactor - Constants.MAX_SPEED) < Constants.epsilon) {
-            simulatedTimeToRealTime = 0.0;
-        } else {
-            simulatedTimeToRealTime = 0.5 * timeFactor;
-        }
-        try {
-            if (simulatedTimeToRealTime > 0) {
-                Thread.sleep((long)(simulatedTimeToRealTime * 1000)); 
+        if (timeFactor > 0) {
+            
+        
+            try {
+                Thread.sleep((long)(1000/timeFactor)); 
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            getSimulationCore().refreshGUI();
+            SystemEvent newEvent = new SystemEvent(getTime() + 1, getSimulationCore());
+            getSimulationCore().addEvent(newEvent);
         }
-        getSimulationCore().refreshGUI();
-        SystemEvent newEvent = new SystemEvent(getTime() + 0.5, getSimulationCore());
-        getSimulationCore().addEvent(newEvent);
     }
     
     

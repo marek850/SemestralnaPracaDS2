@@ -4,8 +4,28 @@ import org.apache.commons.math3.distribution.TDistribution;
 
 public class Statistic {
     private double sum;
+    public double getSum() {
+        return sum;
+    }
+
+    public void setSum(double sum) {
+        this.sum = sum;
+    }
+
     private double sumSquare;
+    public double getSumSquare() {
+        return sumSquare;
+    }
+
+    public void setSumSquare(double sumSquare) {
+        this.sumSquare = sumSquare;
+    }
+
     private int count;
+
+    public void setCount(int count) {
+        this.count = count;
+    }
 
     public Statistic() {
         this.sum = 0;

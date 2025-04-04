@@ -5,7 +5,10 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Random;
 
+import org.jfree.data.statistics.Statistics;
+
 import com.sem2.Events.Event;
+import com.sem2.Events.SystemEvent;
 import com.sem2.Events.Orders.OrderArrival;
 import com.sem2.FurnitureCompany.AssemblyStation;
 import com.sem2.FurnitureCompany.Employee;
@@ -18,18 +21,74 @@ import com.sem2.Generators.DiscreteGenerator;
 import com.sem2.Generators.ExponentialGenerator;
 import com.sem2.Generators.TriangularGenerator;
 import com.sem2.Statistics.Statistic;
+import com.sem2.Statistics.WeightStatistics;
 import com.sem2.UserInterface.UserInterface;
 public class FurnitureCompany extends EventSimulationCore{
     private int lastStationId = 0;
+    private int lastEmployeeId = 0;
+    public int getLastEmployeeId() {
+        return lastEmployeeId;
+    }
+    public void setLastEmployeeId(int lastEmployeeId) {
+        this.lastEmployeeId = lastEmployeeId;
+    }
     private ArrayList<Order> allActiveOrders = new ArrayList<>();
     private Statistic orderFinishTime = new Statistic();
-    private Statistic chairCutting = new Statistic();
-    public Statistic getChairCutting() {
-        return chairCutting;
+    private Statistic globalFinishTime = new Statistic();
+    private WeightStatistics waitingOrders = new WeightStatistics();
+    private boolean isDone = false;
+    public int orderTracker = 0;
+    public boolean isDone() {
+		return isDone;
+	}
+	public WeightStatistics getWaitingOrders() {
+		return waitingOrders;
+	}
+	public void setWaitingOrders(WeightStatistics waitingOrders) {
+		this.waitingOrders = waitingOrders;
+	}
+	private Statistic globalWaitingOrders = new Statistic();
+    private double waitingOrderQueueChange;
+    public double getWaitingOrderQueueChange() {
+		return waitingOrderQueueChange;
+	}
+	public void setWaitingOrderQueueChange(double waitingOrderQueueChange) {
+		this.waitingOrderQueueChange = waitingOrderQueueChange;
+	}
+	public Statistic getGlobalWaitingOrders() {
+		return globalWaitingOrders;
+	}
+	public void setGlobalWaitingOrders(Statistic globalWaitingOrders) {
+		this.globalWaitingOrders = globalWaitingOrders;
+	}
+	private Statistic workloadA = new Statistic();
+    public Statistic getWorkloadA() {
+		return workloadA;
+	}
+	public void setWorkloadA(Statistic workloadA) {
+		this.workloadA = workloadA;
+	}
+	private Statistic workloadB = new Statistic();
+    public Statistic getWorkloadB() {
+		return workloadB;
+	}
+	public void setWorkloadB(Statistic workloadB) {
+		this.workloadB = workloadB;
+	}
+	private Statistic workloadC = new Statistic();
+    public Statistic getWorkloadC() {
+		return workloadC;
+	}
+	public void setWorkloadC(Statistic workloadC) {
+		this.workloadC = workloadC;
+	}
+	public Statistic getGlobalFinishTime() {
+        return globalFinishTime;
     }
-    public void setChairCutting(Statistic chairCutting) {
-        this.chairCutting = chairCutting;
+    public void setGlobalFinishTime(Statistic globalFinishTime) {
+        this.globalFinishTime = globalFinishTime;
     }
+    
     public Statistic getOrderFinishTime() {
         return orderFinishTime;
     }
@@ -88,52 +147,70 @@ public class FurnitureCompany extends EventSimulationCore{
     public ArrayList<AssemblyStation> getAllAssemblyStations() {
         return allAssemblyStations;
     }
-    private Random seedGenerator = new Random();
+    private double waitingOrderQueueChangeTime;
+    public double getWaitingOrderQueueChangeTime() {
+		return waitingOrderQueueChangeTime;
+	}
+	public void setWaitingOrderQueueChangeTime(double waitingOrderQueueChangeTime) {
+		this.waitingOrderQueueChangeTime = waitingOrderQueueChangeTime;
+	}
+    private int seed = new Random().nextInt(1000000);
+	private Random seedGenerator = new Random(671493);
+    
     private ExponentialGenerator orderArrivalGen = new ExponentialGenerator(seedGenerator, 1800); //30 minut * 60s = 1800s
     private TriangularGenerator storageMoveTimeGen = new TriangularGenerator(seedGenerator, 60, 480, 120);
     private TriangularGenerator stationMoveTimeGen = new TriangularGenerator(seedGenerator, 120, 500, 150);
 
     private TriangularGenerator materialPrepTimGen = new TriangularGenerator(seedGenerator, 300, 900, 500);
     //Stoly
-    private ContinuousGenerator tableCutTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{10.0 * 60, 25.0 * 60},new double[]{25.0 * 60, 50.0 * 60}), List.of(0.6, 0.4));
-    private ContinuousGenerator tableVarnTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{200.0 * 60, 36601}), List.of(1.0));
-    private ContinuousGenerator tableAssembleTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{30.0*60, 3601}), List.of(1.0));
+    private ContinuousGenerator tableCutTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{600, 1500},new double[]{1500, 3000}), List.of(0.6, 0.4));
+    private ContinuousGenerator tableVarnTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{12000, 36600}), List.of(1.0));
+    private ContinuousGenerator tableAssembleTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{1800, 3600}), List.of(1.0));
     //Stolicky
-    private ContinuousGenerator chairCutTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{12.0*60, 961}), List.of(1.0));
-    private ContinuousGenerator chairVarnTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{210.0 * 60, 32401}), List.of(1.0));
-    private ContinuousGenerator chairAssembleTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{14.0*60, 1441}), List.of(1.0));
+    private ContinuousGenerator chairCutTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{720, 960}), List.of(1.0));
+    private ContinuousGenerator chairVarnTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{12600, 32400}), List.of(1.0));
+    private ContinuousGenerator chairAssembleTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{840, 1440}), List.of(1.0));
     //Skrine
-    private ContinuousGenerator wardrobeCutTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{15.0*60, 4801}), List.of(1.0));
-    private ContinuousGenerator wardrobeVarnTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{600.0*60, 42001}), List.of(1.0));
-    private ContinuousGenerator wardrobeAssembleTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{35.0*60, 4501}), List.of(1.0));
-    private ContinuousGenerator wardrobeFittingTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{15.0*60, 37501}), List.of(1.0));
-
+    private ContinuousGenerator wardrobeCutTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{900, 4800}), List.of(1.0));
+    private ContinuousGenerator wardrobeVarnTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{36000, 42000}), List.of(1.0));
+    private ContinuousGenerator wardrobeAssembleTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{2100, 4500}), List.of(1.0));
+    private ContinuousGenerator wardrobeFittingTimeGen = new ContinuousGenerator(seedGenerator, List.of(new double[]{900, 1500}), List.of(1.0));
+    private boolean slowdownRatio = false;
+    public Random orderIDGen = new Random(seedGenerator.nextInt());
+    public boolean isSlowdownRatio() {
+        return slowdownRatio;
+    }
     private DiscreteGenerator orderTypeGen = new DiscreteGenerator(seedGenerator, List.of(new int[]{0, 100}), List.of(1.0));
 
     public FurnitureCompany(double maxSimulationTime, int numberOfAEmployees, int numberOfBEmployees, int numberOfCEmployees) {
         super(maxSimulationTime);
+        System.out.println("Seed: " + seed);
+        waitingOrderQueueChangeTime = 0;
         for (int i = 0; i < numberOfAEmployees; i++) {
-            employeesA.add(new Employee(EmployeeType.A));
+            employeesA.add(new Employee(lastEmployeeId, EmployeeType.A));
+            lastEmployeeId++;
         }
         for (int i = 0; i < numberOfBEmployees; i++) {
-            employeesB.add(new Employee(EmployeeType.B));
+            employeesB.add(new Employee(lastEmployeeId, EmployeeType.B));
+            lastEmployeeId++;
         }
         for (int i = 0; i < numberOfCEmployees; i++) {
-            employeesC.add(new Employee(EmployeeType.C));
+            employeesC.add(new Employee(lastEmployeeId, EmployeeType.C));
+            lastEmployeeId++;
         }
     }
     
     public double getMatPrepTime() {
-        return materialPrepTimGen.getSample();
+        return /* 120; */materialPrepTimGen.getSample();
     }
     public double getStationMoveTime() {
-        return stationMoveTimeGen.getSample();
+        return /* 200; */stationMoveTimeGen.getSample();
     }
     public double getStorageMoveTime() {
-        return storageMoveTimeGen.getSample();
+        return /* 150; */storageMoveTimeGen.getSample();
     }
     public double getOrderArrivalTime() {
-        return orderArrivalGen.getSample();
+        return /* 100; */orderArrivalGen.getSample();
     }
     public boolean isAAvailable() {
         return !availableEmployeesA.isEmpty();
@@ -156,7 +233,7 @@ public class FurnitureCompany extends EventSimulationCore{
     public int getOrderType() {
         return orderTypeGen.getSample();
     }
-    public void addOrder(Order order) {
+    public void addOrderWaitingForCut(Order order) {
         waitingOrdersQueue.add(order);
     }
     public boolean isOrderWaitingForCutting() {
@@ -165,17 +242,18 @@ public class FurnitureCompany extends EventSimulationCore{
     public double getCuttingTime(Order order) {
         switch (order.getType()) {
             case TABLE:
-                return tableCutTimeGen.getSample();
+                return /* 600; */tableCutTimeGen.getSample();
             case CHAIR:
-                return chairCutTimeGen.getSample();
+                return /* 720; */chairCutTimeGen.getSample();
             case WARDROBE:
-                return wardrobeCutTimeGen.getSample();
+                return /* 900; */wardrobeCutTimeGen.getSample();
             default:
-                return 0;
+                throw new IllegalArgumentException("Unknown order type: " + order.getType());
         }
     }
     public void freeEmployee(Employee employee) {
         employee.setState(EmployeeState.IDLE);
+        employee.setWorking(false, getCurrentTime());
         switch (employee.getType()) {
             case A:
                 availableEmployeesA.add(employee);
@@ -187,7 +265,7 @@ public class FurnitureCompany extends EventSimulationCore{
                 availableEmployeesC.add(employee);
                 break;
             default:
-                break;
+                throw new IllegalArgumentException("Unknown employee type: " + employee.getType());
         }
     }
     public void addOrderForVarnish(Order order) {
@@ -197,30 +275,41 @@ public class FurnitureCompany extends EventSimulationCore{
         return waitingOrdersQueue.remove(0);
     }
     public double getFittingTime() {
-        return wardrobeFittingTimeGen.getSample();
+        return /* 900; */wardrobeFittingTimeGen.getSample();
     }
     public double getVarnishingTime(Order order) {
         switch (order.getType()) {
             case TABLE:
-                return tableVarnTimeGen.getSample();
+                return /* 1000; */tableVarnTimeGen.getSample();
             case CHAIR:
-                return chairVarnTimeGen.getSample();
+                return /* 1000; */chairVarnTimeGen.getSample();
             case WARDROBE:
-                return wardrobeVarnTimeGen.getSample();
+                return /* 1000; */wardrobeVarnTimeGen.getSample();
             default:
-                return 0;
+                throw new IllegalArgumentException("Unknown order type: " + order.getType());
         }
     }
     public double getAssembleTime(Order order) {
         switch (order.getType()) {
             case TABLE:
-                return tableAssembleTimeGen.getSample();
+                return /* 1800; */tableAssembleTimeGen.getSample();
             case CHAIR:
-                return chairAssembleTimeGen.getSample();
+                return /* 800; */chairAssembleTimeGen.getSample();
             case WARDROBE:
-                return wardrobeAssembleTimeGen.getSample();
+                return/*  1000; */wardrobeAssembleTimeGen.getSample();
             default:
-                return 0;
+                throw new IllegalArgumentException("Unknown order type: " + order.getType());
+        }
+    }
+    public void updateWorkloadStats(){
+        for (Employee employee : employeesA) {
+            employee.getWorkloadStat().addValue(employee.getWorkload(getCurrentTime()));
+        }
+        for (Employee employee : employeesB) {
+            employee.getWorkloadStat().addValue(employee.getWorkload(getCurrentTime()));
+        }
+        for (Employee employee : employeesC) {
+            employee.getWorkloadStat().addValue(employee.getWorkload(getCurrentTime()));
         }
     }
     public boolean isOrderWaitingForVarnish() {
@@ -263,23 +352,11 @@ public class FurnitureCompany extends EventSimulationCore{
         this.lastStationId = lastStationId;
     }
     @Override
-    protected void beforeSimRun() {
-        super.beforeSimRun();
-        for (Employee employee : employeesA) {
-            availableEmployeesA.add(employee);
-        }
-        for (Employee employee : employeesB) {
-            availableEmployeesB.add(employee);
-        }
-        for (Employee employee : employeesC) {
-            availableEmployeesC.add(employee);
-        }
-        OrderArrival orderArrival = new OrderArrival( getCurrentTime() + getOrderArrivalTime(), this);
-        addEvent(orderArrival);
+    protected void beforeSimulation() {
+        
     }
     @Override
-    protected void afterSimRun() {
-        super.afterSimRun();
+    protected void beforeSimRun() {
         waitingOrdersQueue.clear();
         varnishingWaitQueue.clear();
         assemblingWaitQueue.clear();
@@ -288,26 +365,75 @@ public class FurnitureCompany extends EventSimulationCore{
         availableEmployeesB.clear();
         availableEmployeesC.clear();
         availableAssemblyStations.clear();
-        for (Employee employee : employeesA) {
-            employee.setState(EmployeeState.IDLE);
-            employee.setPosition(Position.STORAGE);
-        }
-        for (Employee employee : employeesB) {
-            employee.setState(EmployeeState.IDLE);
-            employee.setPosition(Position.STORAGE);
-        }
-        for (Employee employee : employeesC) {
-            employee.setState(EmployeeState.IDLE);
-            employee.setPosition(Position.STORAGE);
-        }
         allActiveOrders.clear();
         allAssemblyStations.clear();
+        orderFinishTime.reset();
+        eventCalendar.clear();
+        waitingOrders.reset();
+        setCurrentTime(0);
+        for (Employee employee : employeesA) {
+            employee.reset();
+            availableEmployeesA.add(employee);
+        }
+        for (Employee employee : employeesB) {
+            employee.reset();
+            availableEmployeesB.add(employee);
+        }
+        for (Employee employee : employeesC) {
+            employee.reset();
+            availableEmployeesC.add(employee);
+        }
+        SystemEvent systemEvent = new SystemEvent(getCurrentTime(), this);
+        addEvent(systemEvent);
+        OrderArrival orderArrival = new OrderArrival(getCurrentTime() + getOrderArrivalTime(), this);
+        addEvent(orderArrival);
+    }
+    @Override
+    protected void afterSimRun() {
+        super.afterSimRun();
+        
         System.out.println("Average order processing time: " + orderFinishTime.getAverage() + " seconds.");
-        System.out.println("Average chair cutting time: " + chairCutting.getAverage() + " seconds.");
+        if (!isStop()) {
+            globalFinishTime.addValue(orderFinishTime.getAverage());
+            globalWaitingOrders.addValue(waitingOrders.getWeightedAverage());
+            updateWorkloadStats();
+            workloadA.addValue(getAverageGroupWorkload(EmployeeType.A));
+            workloadB.addValue(getAverageGroupWorkload(EmployeeType.B));
+            workloadC.addValue(getAverageGroupWorkload(EmployeeType.C));
+        }
+        waitingOrderQueueChangeTime = 0;
+        
         /* 
         System.out.println("Average order processing time: " + orderFinishTime.getAverage() + " seconds.");
         System.out.println("Average order processing time: " + orderFinishTime.getAverage()/60 + " minutes.");
         System.out.println("Average order processing time: " + orderFinishTime.getAverage()/3600 + " hours."); */
+    }
+    public double getAverageGroupWorkload(EmployeeType type) {
+        double sum = 0;
+        int count = 0;
+        switch (type) {
+            case A:
+                for (Employee employee : employeesA) {
+                    sum += employee.getWorkload(getCurrentTime());
+                    count++;
+                }
+                break;
+            case B:
+                for (Employee employee : employeesB) {
+                    sum += employee.getWorkload(getCurrentTime());
+                    count++;
+                }
+                break;
+            case C:
+                for (Employee employee : employeesC) {
+                    sum += employee.getWorkload(getCurrentTime());
+                    count++;
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown employee type: " + type);
+        }
+        return sum / count;
     }
     public void addActiveOrder(Order order) {
         allActiveOrders.add(order);
@@ -321,9 +447,14 @@ public class FurnitureCompany extends EventSimulationCore{
     @Override
     protected void afterSimulation() {
         super.afterSimulation();
+        isDone = true;
+        refreshGUI();
+        isDone = false;
         System.out.println("Simulation finished.");
-        System.out.println("Average order processing time: " + orderFinishTime.getAverage() + " seconds.");/* 
-        System.out.println("Average order processing time: " + orderFinishTime.getAverage()/60 + " minutes.");
-        System.out.println("Average order processing time: " + orderFinishTime.getAverage()/3600 + " hours."); */
+        System.out.println("Average order processing time: " + globalFinishTime.getAverage() + " seconds.");
+        System.out.println("Average order processing time: " + globalFinishTime.getAverage()/60 + " minutes.");
+        System.out.println("Average order processing time: " + globalFinishTime.getAverage()/3600 + " hours."); 
+        double[] confidenceInterval = globalFinishTime.getConfidenceInterval95();
+        System.out.println("Reliability interval: <" + confidenceInterval[0]/3600 + ", " + confidenceInterval[1]/3600 + ">");
     }
 }

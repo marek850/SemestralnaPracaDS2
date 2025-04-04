@@ -5,6 +5,7 @@ public enum EmployeeState {
     MOVING("Presúva sa"), 
     PREPARING_MATERIAL("Pripravuje materiál"), 
     CUTTING("Reže"), 
+    KOKOT("Kokot"),
     VARNISHING("Lakuje"), 
     ASSEMBLING("Skladá"), 
     FITTING("Montuje kovania");

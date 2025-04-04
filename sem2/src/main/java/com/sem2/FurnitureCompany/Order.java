@@ -1,5 +1,7 @@
 package com.sem2.FurnitureCompany;
 
+import java.util.Random;
+
 import com.sem2.FurnitureCompany.Enums.FurnitureType;
 import com.sem2.FurnitureCompany.Enums.OrderState;
 
@@ -7,6 +9,7 @@ public class Order {
     private FurnitureType type;
     private int ID;
     private double arrivalTime;
+    public String passedEvents = "";
     public double getArrivalTime() {
         return arrivalTime;
     }
@@ -27,9 +30,9 @@ public class Order {
     public void setStation(AssemblyStation station) {
         this.station = station;
     }
-    public Order(FurnitureType furnitureType) {
+    public Order(int id, FurnitureType furnitureType) {
         type = furnitureType;
-        ID = (int) (Math.random() * 10000);
+        ID = id;
         arrivalTime = 0;
     }
     public OrderState getState() {

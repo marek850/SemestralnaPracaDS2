@@ -7,10 +7,15 @@ import com.sem2.UserInterface.UserInterface;
 public abstract class SimulationCore {
     
     private boolean stop = false;
+    protected int numberOfReplications = 0;
+    public boolean isStop() {
+        return stop;
+    }
     public void setStop(boolean stop) {
         this.stop = stop;
     }
     public final void runSimulation(int numberOfReplications) {
+        this.numberOfReplications = numberOfReplications;
         beforeSimulation();
         for (int i = 0; i < numberOfReplications; i++) {
             if (this.stop) {

@@ -9,6 +9,7 @@ import com.sem2.Generators.ExponentialGenerator;
 import com.sem2.Generators.TriangularGenerator;
 import com.sem2.SimCore.FurnitureCompany;
 import com.sem2.SimCore.TicketsSim;
+import com.sem2.Statistics.Statistic;
 
 public class Main {
     public static void main(String[] args) {
@@ -26,10 +27,16 @@ public class Main {
         generateSamples(exponentialGen, "exponential_data.txt"); 
          /* TicketsSim sim = new TicketsSim(Double.MAX_VALUE);
         sim.runSimulation(1); */
-        FurnitureCompany sim = new FurnitureCompany(7171200,30,3,18);
-        sim.setMaxSpeedMode();
-        sim.runSimulation(1000);
-        
+        FurnitureCompany sim = new FurnitureCompany(7171200,1,2,16);
+        sim.setTimeFactor(0.0);
+        sim.runSimulation(1000);/* 
+        Statistic stat = new Statistic();
+        stat.setSum(1.8921920632621964E11);
+        stat.setSumSquare(1.0089383261992968E16);
+        stat.setCount(3961550);
+        System.out.println("Average: " + stat.getAverage());
+        System.out.println("Reliability interval: <" + stat.getConfidenceInterval95()[0]+ ", " + stat.getConfidenceInterval95()[1]+ ">");
+         */
     }
     
     private static void generateSamples(AbstractGenerator<Double> generator, String filename) {
