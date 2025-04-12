@@ -8,8 +8,6 @@ import com.sem2.Generators.AbstractGenerator;
 import com.sem2.Generators.ExponentialGenerator;
 import com.sem2.Generators.TriangularGenerator;
 import com.sem2.SimCore.FurnitureCompany;
-import com.sem2.SimCore.TicketsSim;
-import com.sem2.Statistics.Statistic;
 
 public class Main {
     public static void main(String[] args) {

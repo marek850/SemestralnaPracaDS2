@@ -9,14 +9,11 @@ import com.sem2.FurnitureCompany.AssemblyStation;
 import com.sem2.FurnitureCompany.Employee;
 import com.sem2.FurnitureCompany.Order;
 import com.sem2.FurnitureCompany.Enums.EmployeeState;
-import com.sem2.FurnitureCompany.Enums.EmployeeType;
-import com.sem2.FurnitureCompany.Enums.FurnitureType;
 import com.sem2.FurnitureCompany.Enums.OrderState;
 import com.sem2.FurnitureCompany.Enums.Position;
 import com.sem2.FurnitureCompany.Enums.Process;
 import com.sem2.SimCore.EventSimulationCore;
 import com.sem2.SimCore.FurnitureCompany;
-import com.sem2.SimCore.SimulationCore;
 
 public class CuttingEnd extends EmpFurnitureEvent{
 
@@ -26,19 +23,7 @@ public class CuttingEnd extends EmpFurnitureEvent{
     @Override
     public void execute() {
         FurnitureCompany sim = (FurnitureCompany) getSimulationCore();
-        getOrder().passedEvents += "CuttingEnd,";
-        if (getOrder().getID() == 1631598044) {
-            System.out.println();
-        }
         Employee finishedEmployee = getEmployee();
-        if(finishedEmployee.getState() != EmployeeState.CUTTING) {
-            throw new IllegalStateException("Employee must be cutting when arriving -CuttingEnd 1");
-            
-        }
-        if (getOrder().getState() != OrderState.BEING_CUT) {
-            throw new IllegalStateException("Order must be cutting when arriving -CuttingEnd 2");
-            
-        }
         finishedEmployee.setState(EmployeeState.IDLE);
         getOrder().setState(OrderState.CUT);
 
@@ -47,10 +32,6 @@ public class CuttingEnd extends EmpFurnitureEvent{
             Order waitingOrder = sim.getOrderWaitingForCutting();
             sim.getWaitingOrders().addData(sim.getWaitingOrdersQueue().size(), getTime() - sim.getWaitingOrderQueueChangeTime());
             sim.setWaitingOrderQueueChangeTime(getTime());
-            if(waitingOrder.getState() != OrderState.PENDING) {
-                throw new IllegalStateException("Order must be waiting for cutting when arriving -CuttingEnd 3");
-                
-            }
             if (sim.isAvailableStation()) {
                 waitingOrder.setStation(sim.getBestAssemblyStation());
             } else {
@@ -82,18 +63,9 @@ public class CuttingEnd extends EmpFurnitureEvent{
                 sim.addEvent(fitting);
             } else if(freeEmployee.getCurrentPosition() == Position.ASSEMBLY_STATION && freeEmployee.getStation() != waitingOrder.getStation()){
                 freeEmployee.setState(EmployeeState.MOVING);
-                if (freeEmployee.getType() != EmployeeType.C || waitingOrder.getState() != OrderState.ASSEMBLED) {
-                    throw new IllegalStateException("Employee type C with waiting order cannot be here-cuttingEnd 1");
-                    
-                }
-                
                 MoveToStation moveToStation = new MoveToStation(getTime() + sim.getStationMoveTime(), sim, freeEmployee, waitingOrder);
                 sim.addEvent(moveToStation);
             } else {
-                if (freeEmployee.getType() != EmployeeType.C || waitingOrder.getState() != OrderState.ASSEMBLED) {
-                    throw new IllegalStateException("Employee type C with waiting order cannot be here-cuttingEnd 1");
-                    
-                }
                 freeEmployee.setState(EmployeeState.MOVING);
                 MoveToStorage moveToStorage = new MoveToStorage(getTime() + sim.getStorageMoveTime(), sim, freeEmployee, waitingOrder);
                 sim.addEvent(moveToStorage);
@@ -101,15 +73,7 @@ public class CuttingEnd extends EmpFurnitureEvent{
         }
        
         else if (sim.isCAvailable()){
-            if (getOrder().getState() != OrderState.CUT) {
-                throw new IllegalStateException("Order must be cut when arriving -CuttingEnd 3");
-                
-            }
             Employee freeEmployee = sim.getCAvailable();
-            /* if (freeEmployee.getState() != EmployeeState.IDLE) {
-                throw new IllegalStateException("Employee C must be idle when he is available-CuttingEnd 4");
-                
-            } */
             freeEmployee.setWorking(true, getTime());
             if (freeEmployee.getCurrentPosition() == Position.ASSEMBLY_STATION && freeEmployee.getStation() == getOrder().getStation()) {
                 freeEmployee.setState(EmployeeState.VARNISHING);
@@ -130,7 +94,6 @@ public class CuttingEnd extends EmpFurnitureEvent{
         } else{
             getOrder().setState(OrderState.WAITING_FOR_VARNISH);
             getOrder().getStation().setCurrentProcess(Process.NONE);
-            getOrder().passedEvents += "varnishQueue,";
             sim.addOrderForVarnish(getOrder());
         }
     }

@@ -1,7 +1,6 @@
 package com.sem2.SimCore;
 
 import java.util.ArrayList;
-import java.util.PriorityQueue;
 import java.util.Random;
 
 import com.sem2.Events.Event;

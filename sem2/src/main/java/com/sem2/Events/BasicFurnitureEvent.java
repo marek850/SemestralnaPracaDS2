@@ -4,7 +4,6 @@ import com.sem2.FurnitureCompany.Employee;
 import com.sem2.FurnitureCompany.Order;
 import com.sem2.SimCore.EventSimulationCore;
 import com.sem2.SimCore.FurnitureCompany;
-import com.sem2.SimCore.SimulationCore;
 
 public class BasicFurnitureEvent extends Event {
     private Order order;

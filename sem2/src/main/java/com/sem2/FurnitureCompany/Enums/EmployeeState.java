@@ -3,6 +3,7 @@ package com.sem2.FurnitureCompany.Enums;
 public enum EmployeeState {
     IDLE("Nečinný"), 
     MOVING("Presúva sa"), 
+    PREBERA_OBJEDNAVKU("Preberá objednávku"),
     PREPARING_MATERIAL("Pripravuje materiál"), 
     CUTTING("Reže"), 
     KOKOT("Kokot"),

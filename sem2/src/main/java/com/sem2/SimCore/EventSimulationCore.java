@@ -5,8 +5,6 @@ import java.util.PriorityQueue;
 import com.sem2.Constants.Constants;
 import com.sem2.Events.Event;
 import com.sem2.Events.SystemEvent;
-import com.sem2.Statistics.Statistic;
-import com.sem2.Statistics.WeightStatistics;
 import com.sem2.UserInterface.UserInterface;
 
 
@@ -105,7 +103,8 @@ public class EventSimulationCore extends SimulationCore {
     @Override
     protected void beforeSimRun() {
         super.beforeSimRun();
-        currentTime = 0;
+        SystemEvent systemEvent = new SystemEvent(getCurrentTime(), this);
+        addEvent(systemEvent);
     }
     @Override
     protected void executeSimRun() {

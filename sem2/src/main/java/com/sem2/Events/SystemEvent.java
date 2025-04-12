@@ -1,8 +1,6 @@
 package com.sem2.Events;
 
-import com.sem2.Constants.Constants;
 import com.sem2.SimCore.EventSimulationCore;
-import com.sem2.SimCore.SimulationCore;
 
 public class SystemEvent extends Event{
 
@@ -18,10 +16,7 @@ public class SystemEvent extends Event{
     @Override
     public void execute() {
         double timeFactor = getSimulationCore().getTimeFactor();
-        
         if (timeFactor > 0) {
-            
-        
             try {
                 Thread.sleep((long)(1000/timeFactor)); 
             }

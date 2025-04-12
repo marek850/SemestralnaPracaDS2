@@ -1,7 +1,5 @@
 package com.sem2.FurnitureCompany;
 
-import java.lang.reflect.Type;
-
 import com.sem2.FurnitureCompany.Enums.EmployeeState;
 import com.sem2.FurnitureCompany.Enums.EmployeeType;
 import com.sem2.FurnitureCompany.Enums.Position;

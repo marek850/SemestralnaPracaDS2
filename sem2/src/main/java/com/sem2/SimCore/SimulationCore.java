@@ -1,9 +1,5 @@
 package com.sem2.SimCore;
 
-import java.util.ArrayList;
-
-import com.sem2.UserInterface.UserInterface;
-
 public abstract class SimulationCore {
     
     private boolean stop = false;

@@ -2,6 +2,7 @@ package com.sem2.FurnitureCompany.Enums;
 
 public enum OrderState {
     PENDING("Čaká na rezanie"),
+    PREBERA_OBJEDNAVKU("Preberana pracovnikom"),
     PREPARING_MATERIAL("Príprava materiálu"),
     MATERIAL_PREPARED("Materiál pripravený"),
     BEING_CUT("Reže sa"),

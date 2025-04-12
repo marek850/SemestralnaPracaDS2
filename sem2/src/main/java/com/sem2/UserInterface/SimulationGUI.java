@@ -5,18 +5,12 @@ package com.sem2.UserInterface;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
@@ -24,7 +18,6 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeries;
@@ -32,15 +25,12 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.ui.RefineryUtilities;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-import com.sem2.Constants.Constants;
 import com.sem2.FurnitureCompany.AssemblyStation;
 import com.sem2.FurnitureCompany.Employee;
 import com.sem2.FurnitureCompany.Order;
-import com.sem2.FurnitureCompany.Enums.EmployeeType;
 import com.sem2.FurnitureCompany.Enums.Position;
 import com.sem2.SimCore.EventSimulationCore;
 import com.sem2.SimCore.FurnitureCompany;
-import com.sem2.Statistics.Statistic;
 
 public class SimulationGUI extends JFrame implements UserInterface {
     private XYSeriesCollection dataset;
@@ -56,10 +46,6 @@ public class SimulationGUI extends JFrame implements UserInterface {
     private JTextField currentReplicationTextField;
     private JTextField simulationTimeLabelTextField;
     private JComboBox<String> timeFactorComboBox;
-    private JPanel employeesPanel;
-    private JPanel ordersPanel;
-    private JPanel assemblyStationsPanel;
-    private JTextField averageTimeTextField;
     private FurnitureCompany simulation;
     private int points;
     private int totalReplications;
@@ -74,7 +60,6 @@ public class SimulationGUI extends JFrame implements UserInterface {
     private JTextField waitingForVarnishLabelTextField;
     private JTextField waitingForAssembleLabelTextField;
     private JTextField waitingForFittingLabelTextField;
-    private boolean simEnd = false;
     private JTable orderStatsJTable;
     private JTable groupStatsJTable;
     private JTable employeeStatsJTable;
@@ -85,7 +70,7 @@ public class SimulationGUI extends JFrame implements UserInterface {
         chart = ChartFactory.createXYLineChart(
                 "Čas spracovania objednávky", // Názov grafu
                 "Replikacie", // X-os
-                "Čas(H)", // Y-os
+                "Čas(s)", // Y-os
                 dataset,
                 PlotOrientation.VERTICAL,
                 true, true, false);
@@ -170,10 +155,10 @@ public class SimulationGUI extends JFrame implements UserInterface {
         JPanel controlPanel = new JPanel();
         controlPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Komponenty sa roztiahnu vodorovne
-        gbc.insets = new Insets(5, 5, 5, 5); // Odsadenie medzi prvkami (hore, vľavo, dole, vpravo)
+        gbc.fill = GridBagConstraints.HORIZONTAL; 
+        gbc.insets = new Insets(5, 5, 5, 5); 
 
-        // Prvý riadok
+       
         gbc.gridx = 0;
         gbc.gridy = 0;
         controlPanel.add(repsLabel, gbc);
@@ -184,7 +169,7 @@ public class SimulationGUI extends JFrame implements UserInterface {
         controlPanel.add(pointsLabel, gbc);
         gbc.gridx = 3;
         controlPanel.add(pointsTextField, gbc);
-        // Druhý riadok
+        
         gbc.gridx = 0;
         gbc.gridy = 1;
         controlPanel.add(aEmpLabel, gbc);
@@ -199,7 +184,7 @@ public class SimulationGUI extends JFrame implements UserInterface {
         controlPanel.add(cEmpLabel, gbc);
         gbc.gridx = 5;
         controlPanel.add(cEmployees, gbc);
-        // Tretí riadok
+        
         gbc.gridx = 0;
         gbc.gridy = 2;
         controlPanel.add(timeFactorLabel, gbc);
@@ -207,8 +192,6 @@ public class SimulationGUI extends JFrame implements UserInterface {
         gbc.gridx = 1;
         controlPanel.add(timeFactorComboBox, gbc);
 
-
-        // Tretí riadok
         gbc.gridx = 0;
         gbc.gridy = 3;
         controlPanel.add(startButton, gbc);
@@ -219,9 +202,6 @@ public class SimulationGUI extends JFrame implements UserInterface {
         gbc.gridx = 2;
         controlPanel.add(pauseButton, gbc);
 
-        
-
-        // Štvrtý riadok
         gbc.gridx = 0;
         gbc.gridy = 4;
         controlPanel.add(currentReplicationLabel, gbc);
@@ -240,7 +220,7 @@ public class SimulationGUI extends JFrame implements UserInterface {
         JPanel contentPanel = new JPanel(new GridLayout(1, 3, 10, 10));
         animationPanel.add(contentPanel, BorderLayout.CENTER);
 
-        // Sekcia so zamestnancami s JTable
+        
         String[] employeeColumns = {"ID", "Skupina", "Pozícia", "Stav", "Montazne miesto"};
         Object[][] employeeData = {};
         employeesTable = new JTable(new DefaultTableModel(employeeData, employeeColumns));
@@ -248,7 +228,7 @@ public class SimulationGUI extends JFrame implements UserInterface {
         employeesScroll.setBorder(BorderFactory.createTitledBorder("Činnosti zamestnancov"));
         contentPanel.add(employeesScroll);
 
-        // Sekcia s objednávkami s JTable
+        
         String[] orderColumns = {"ID", "Typ", "Stav", "Montazne miesto"};
         Object[][] orderData = {};
         ordersTable = new JTable(new DefaultTableModel(orderData, orderColumns));
@@ -256,7 +236,7 @@ public class SimulationGUI extends JFrame implements UserInterface {
         ordersScroll.setBorder(BorderFactory.createTitledBorder("Všetky objednávky"));
         contentPanel.add(ordersScroll);
 
-        // Sekcia s montážnymi miestami s JTable
+        
         String[] assemblyColumns = {"ID", "Stav"};
         Object[][] assemblyData = {};
         assemblyStationsTable = new JTable(new DefaultTableModel(assemblyData, assemblyColumns));
@@ -264,11 +244,11 @@ public class SimulationGUI extends JFrame implements UserInterface {
         assemblyStationsScroll.setBorder(BorderFactory.createTitledBorder("ˇČinnosti na montážnych staniciach"));
         contentPanel.add(assemblyStationsScroll);
 
-        // Pridanie frontsPanel do contentPanel
-        JPanel frontsPanel = new JPanel(new GridLayout(2, 4, 10, 10)); // Rozdelenie na 2 riadky a 4 stĺpce
+        
+        JPanel frontsPanel = new JPanel(new GridLayout(2, 4, 10, 10)); 
         animationPanel.add(frontsPanel, BorderLayout.NORTH);
 
-        // Cakajúce objednávky
+       
         JLabel waitingOrderLabel = new JLabel("Objednávky čakajúce na rezanie:");
         waitingOrderLabelTextField = new JTextField(10);
         waitingOrderLabelTextField.setEditable(false);
@@ -451,9 +431,9 @@ public class SimulationGUI extends JFrame implements UserInterface {
                 orderStatsModel.addRow(new Object[]{"Priemerny pocet cakajucich objednavok:", String.format("%.4f", simulation.getGlobalWaitingOrders().getAverage()), "<" + String.format("%.4f", simulation.getGlobalWaitingOrders().getConfidenceInterval95()[0]) + ", " + String.format("%.4f", simulation.getGlobalWaitingOrders().getConfidenceInterval95()[1]) + ">"});
                 DefaultTableModel groupWorkStats = (DefaultTableModel) groupStatsJTable.getModel();
                 groupWorkStats.setRowCount(0); 
-                groupWorkStats.addRow(new Object[]{"A", String.format("%.4f", simulation.getAverageGroupWorkload(EmployeeType.A)), "<" + String.format("%.4f", simulation.getWorkloadA().getConfidenceInterval95()[0]) + ", " + String.format("%.4f", simulation.getWorkloadA().getConfidenceInterval95()[1]) + ">"});
-                groupWorkStats.addRow(new Object[]{"B", String.format("%.4f", simulation.getAverageGroupWorkload(EmployeeType.B)), "<" + String.format("%.4f", simulation.getWorkloadB().getConfidenceInterval95()[0]) + ", " + String.format("%.4f", simulation.getWorkloadB().getConfidenceInterval95()[1]) + ">"});
-                groupWorkStats.addRow(new Object[]{"C", String.format("%.4f", simulation.getAverageGroupWorkload(EmployeeType.C)), "<" + String.format("%.4f", simulation.getWorkloadC().getConfidenceInterval95()[0]) + ", " + String.format("%.4f", simulation.getWorkloadC().getConfidenceInterval95()[1]) + ">"});
+                groupWorkStats.addRow(new Object[]{"A", String.format("%.4f", simulation.getWorkloadA().getAverage()), "<" + String.format("%.4f", simulation.getWorkloadA().getConfidenceInterval95()[0]) + ", " + String.format("%.4f", simulation.getWorkloadA().getConfidenceInterval95()[1]) + ">"});
+                groupWorkStats.addRow(new Object[]{"B", String.format("%.4f", simulation.getWorkloadB().getAverage()), "<" + String.format("%.4f", simulation.getWorkloadB().getConfidenceInterval95()[0]) + ", " + String.format("%.4f", simulation.getWorkloadB().getConfidenceInterval95()[1]) + ">"});
+                groupWorkStats.addRow(new Object[]{"C", String.format("%.4f", simulation.getWorkloadC().getAverage()), "<" + String.format("%.4f", simulation.getWorkloadC().getConfidenceInterval95()[0]) + ", " + String.format("%.4f", simulation.getWorkloadC().getConfidenceInterval95()[1]) + ">"});
         
                 
                 DefaultTableModel employyStatsModel = (DefaultTableModel) employeeStatsJTable.getModel();
@@ -489,25 +469,20 @@ public class SimulationGUI extends JFrame implements UserInterface {
             int SECONDS_IN_DAY = 28800;
             int SECONDS_IN_WEEK = 5 * SECONDS_IN_DAY;
     
-            // Získaj týždeň
+            
             int week = (int) (simulation.getCurrentTime() / SECONDS_IN_WEEK);
     
-            // Získaj zostávajúci čas v rámci týždňa
             double remainingTime = simulation.getCurrentTime() % SECONDS_IN_WEEK;
-    
-            // Získaj deň v rámci týždňa
+
             int day = (int) (remainingTime / SECONDS_IN_DAY);
     
-            // Získaj čas v rámci dňa
             double timeInDay = remainingTime % SECONDS_IN_DAY;
     
-            // Rozdelenie času na hodiny, minúty a sekundy
             int hours = (int) (timeInDay / 3600);
             int minutes = (int) ((timeInDay % 3600) / 60);
             int seconds = (int) (timeInDay % 60);
     
             String[] daysOfTheWeek = {"Pondelok", "Utorok", "Streda", "Štvrtok", "Piatok"};
-                // Nastav text na požiadavku
                 simulationTimeLabelTextField.setText("Týždeň: " + (week + 1) + ", Deň: " + daysOfTheWeek[day] + ", Čas: " 
                                                     + String.format("%02d:%02d:%02d", hours, minutes, seconds));
             ArrayList<Employee> allEmployees = new ArrayList<>();
@@ -515,9 +490,8 @@ public class SimulationGUI extends JFrame implements UserInterface {
             allEmployees.addAll(simulation.getEmployeesB());
             allEmployees.addAll(simulation.getEmployeesC());
             SwingUtilities.invokeLater(() -> {
-            // Vyčistíme existujúce údaje v tabuľke a pridáme nové
             DefaultTableModel employeeTableModel = (DefaultTableModel) employeesTable.getModel();
-            employeeTableModel.setRowCount(0); // Odstráni existujúce riadky
+            employeeTableModel.setRowCount(0); 
             for (Employee employee : allEmployees) {
                 
                 employeeTableModel.addRow(new Object[]{employee.getId(),employee.getType(), employee.getCurrentPosition(), employee.getState(), employee.getCurrentPosition() == Position.STORAGE ? "" : employee.getStation().getId()});
@@ -532,7 +506,7 @@ public class SimulationGUI extends JFrame implements UserInterface {
 
             // Aktualizácia montážnych miest
             DefaultTableModel assemblyTableModel = (DefaultTableModel) assemblyStationsTable.getModel();
-            assemblyTableModel.setRowCount(0); // Vymaže existujúce riadky
+            assemblyTableModel.setRowCount(0); 
             for (AssemblyStation station : simulation.getAllAssemblyStations()) {
                 assemblyTableModel.addRow(new Object[]{station.getId(), station.getCurrentProcess()});
             }
@@ -548,29 +522,44 @@ public class SimulationGUI extends JFrame implements UserInterface {
 
             DefaultTableModel orderStatsModel = (DefaultTableModel) orderStatsJTable.getModel();
                 orderStatsModel.setRowCount(0); 
-                orderStatsModel.addRow(new Object[]{"Priemerný čas spracovania objednávky(h)", simulation.getGlobalFinishTime().getAverage(), "N/A" });
-                orderStatsModel.addRow(new Object[]{"Priemerny pocet cakajucich objednavok:", simulation.getGlobalWaitingOrders().getAverage(), "N/A" });
+                orderStatsModel.addRow(new Object[]{"Priemerný čas spracovania objednávky(h)", String.format("%.4f", simulation.getOrderFinishTime().getAverage()), "N/A" });
+                orderStatsModel.addRow(new Object[]{"Priemerny pocet cakajucich objednavok:", String.format("%.4f", simulation.getWaitingOrders().getWeightedAverage()), "N/A" });
                 DefaultTableModel groupWorkStats = (DefaultTableModel) groupStatsJTable.getModel();
                 groupWorkStats.setRowCount(0); 
-                groupWorkStats.addRow(new Object[]{"A", simulation.getAverageGroupWorkload(EmployeeType.A), "N/A"});
-                groupWorkStats.addRow(new Object[]{"B", simulation.getAverageGroupWorkload(EmployeeType.B), "N/A"});
-                groupWorkStats.addRow(new Object[]{"C", simulation.getAverageGroupWorkload(EmployeeType.C), "N/A"});
+                
+                
+                
                 
                 DefaultTableModel employyStatsModel = (DefaultTableModel) employeeStatsJTable.getModel();
                 employyStatsModel.setRowCount(0); 
                 int index = 0;
+                int count = 0;
+                double totalWorkload = 0;
                 for (Employee employee : simulation.getEmployeesA()) {
-                    employyStatsModel.addRow(new Object[]{index, "A", employee.getWorkloadStat().getAverage(), "N/A"});
+                    totalWorkload += employee.getWorkload(simulation.getCurrentTime());
+                    count++;
+                    employyStatsModel.addRow(new Object[]{index, "A", String.format("%.4f", employee.getWorkload(simulation.getCurrentTime())), "N/A"});
                     index++;
                 }
+                groupWorkStats.addRow(new Object[]{"A", String.format("%.4f", totalWorkload/count), "N/A"});
+                count = 0;
+                totalWorkload = 0;
                 for (Employee employee : simulation.getEmployeesB()) {
-                    employyStatsModel.addRow(new Object[]{index, "B", employee.getWorkloadStat().getAverage(), "N/A"});
+                    employyStatsModel.addRow(new Object[]{index, "B", String.format("%.4f", employee.getWorkload(simulation.getCurrentTime())), "N/A"});
+                    totalWorkload += employee.getWorkload(simulation.getCurrentTime());
+                    count++;
                     index++;
                 }
+                groupWorkStats.addRow(new Object[]{"B", String.format("%.4f", totalWorkload/count), "N/A"});
+                count = 0;
+                totalWorkload = 0;
                 for (Employee employee : simulation.getEmployeesC()) {
-                    employyStatsModel.addRow(new Object[]{index, "C", employee.getWorkloadStat().getAverage(), "N/A"});
+                    totalWorkload += employee.getWorkload(simulation.getCurrentTime());
+                    count++;
+                    employyStatsModel.addRow(new Object[]{index, "C", String.format("%.4f", employee.getWorkload(simulation.getCurrentTime())), "N/A"});
                     index++;
                 }
+                groupWorkStats.addRow(new Object[]{"C", String.format("%.4f", totalWorkload/count), "N/A"});
         });
 
     }        

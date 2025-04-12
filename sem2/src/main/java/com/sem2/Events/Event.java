@@ -1,7 +1,6 @@
 package com.sem2.Events;
 
 import com.sem2.SimCore.EventSimulationCore;
-import com.sem2.SimCore.SimulationCore;
 
 public abstract class Event implements Comparable<Event> {
     private double time;
@@ -18,5 +17,4 @@ public abstract class Event implements Comparable<Event> {
     public EventSimulationCore getSimulationCore() {
         return simulationCore;
     }
-    
 }

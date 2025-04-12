@@ -70,7 +70,11 @@ public class Statistic {
         double tValue = tDist.inverseCumulativeProbability(0.975); // 95% CI -> 0.975 kvantil
 
         double marginOfError = tValue * (stdDev / Math.sqrt(this.count));
-        return new double[]{mean - marginOfError, mean + marginOfError};
+        double downLimit = mean - marginOfError;
+        double upLimit = mean + marginOfError;
+        System.out.println("Mean: " + mean + ", StdDev: " + stdDev + ", tValue: " + tValue + ", Margin of Error: " + marginOfError);
+        System.out.println("Confidence Interval: <" + downLimit + ", " + upLimit + ">");
+        return new double[]{downLimit, upLimit};
     }
 
     public int getCount() {

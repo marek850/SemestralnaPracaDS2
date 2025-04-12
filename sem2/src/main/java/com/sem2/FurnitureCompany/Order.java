@@ -1,7 +1,5 @@
 package com.sem2.FurnitureCompany;
 
-import java.util.Random;
-
 import com.sem2.FurnitureCompany.Enums.FurnitureType;
 import com.sem2.FurnitureCompany.Enums.OrderState;
 

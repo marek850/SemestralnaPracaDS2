@@ -1,7 +1,6 @@
 package com.sem2.Events.TicketSelling;
 
 import com.sem2.SimCore.EventSimulationCore;
-import com.sem2.SimCore.SimulationCore;
 import com.sem2.SimCore.TicketsSim;
 
 public class ServiceStart extends StationEvent {

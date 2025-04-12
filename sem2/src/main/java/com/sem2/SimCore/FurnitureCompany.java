@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Random;
 
-import org.jfree.data.statistics.Statistics;
-
-import com.sem2.Events.Event;
 import com.sem2.Events.SystemEvent;
 import com.sem2.Events.Orders.OrderArrival;
 import com.sem2.FurnitureCompany.AssemblyStation;
@@ -15,14 +12,12 @@ import com.sem2.FurnitureCompany.Employee;
 import com.sem2.FurnitureCompany.Order;
 import com.sem2.FurnitureCompany.Enums.EmployeeState;
 import com.sem2.FurnitureCompany.Enums.EmployeeType;
-import com.sem2.FurnitureCompany.Enums.Position;
 import com.sem2.Generators.ContinuousGenerator;
 import com.sem2.Generators.DiscreteGenerator;
 import com.sem2.Generators.ExponentialGenerator;
 import com.sem2.Generators.TriangularGenerator;
 import com.sem2.Statistics.Statistic;
 import com.sem2.Statistics.WeightStatistics;
-import com.sem2.UserInterface.UserInterface;
 public class FurnitureCompany extends EventSimulationCore{
     private int lastStationId = 0;
     private int lastEmployeeId = 0;
@@ -37,7 +32,6 @@ public class FurnitureCompany extends EventSimulationCore{
     private Statistic globalFinishTime = new Statistic();
     private WeightStatistics waitingOrders = new WeightStatistics();
     private boolean isDone = false;
-    public int orderTracker = 0;
     public boolean isDone() {
 		return isDone;
 	}
@@ -155,7 +149,7 @@ public class FurnitureCompany extends EventSimulationCore{
 		this.waitingOrderQueueChangeTime = waitingOrderQueueChangeTime;
 	}
     private int seed = new Random().nextInt(1000000);
-	private Random seedGenerator = new Random(671493);
+	private Random seedGenerator = new Random(seed);
     
     private ExponentialGenerator orderArrivalGen = new ExponentialGenerator(seedGenerator, 1800); //30 minut * 60s = 1800s
     private TriangularGenerator storageMoveTimeGen = new TriangularGenerator(seedGenerator, 60, 480, 120);
@@ -383,16 +377,16 @@ public class FurnitureCompany extends EventSimulationCore{
             employee.reset();
             availableEmployeesC.add(employee);
         }
+        waitingOrderQueueChangeTime = 0;
+        OrderArrival orderArrival = new OrderArrival(getCurrentTime() + getOrderArrivalTime(), this);
         SystemEvent systemEvent = new SystemEvent(getCurrentTime(), this);
         addEvent(systemEvent);
-        OrderArrival orderArrival = new OrderArrival(getCurrentTime() + getOrderArrivalTime(), this);
         addEvent(orderArrival);
     }
     @Override
     protected void afterSimRun() {
         super.afterSimRun();
         
-        System.out.println("Average order processing time: " + orderFinishTime.getAverage() + " seconds.");
         if (!isStop()) {
             globalFinishTime.addValue(orderFinishTime.getAverage());
             globalWaitingOrders.addValue(waitingOrders.getWeightedAverage());
@@ -401,12 +395,8 @@ public class FurnitureCompany extends EventSimulationCore{
             workloadB.addValue(getAverageGroupWorkload(EmployeeType.B));
             workloadC.addValue(getAverageGroupWorkload(EmployeeType.C));
         }
-        waitingOrderQueueChangeTime = 0;
         
-        /* 
-        System.out.println("Average order processing time: " + orderFinishTime.getAverage() + " seconds.");
-        System.out.println("Average order processing time: " + orderFinishTime.getAverage()/60 + " minutes.");
-        System.out.println("Average order processing time: " + orderFinishTime.getAverage()/3600 + " hours."); */
+        
     }
     public double getAverageGroupWorkload(EmployeeType type) {
         double sum = 0;
@@ -450,11 +440,11 @@ public class FurnitureCompany extends EventSimulationCore{
         isDone = true;
         refreshGUI();
         isDone = false;
-        System.out.println("Simulation finished.");
+        /* System.out.println("Simulation finished.");
         System.out.println("Average order processing time: " + globalFinishTime.getAverage() + " seconds.");
         System.out.println("Average order processing time: " + globalFinishTime.getAverage()/60 + " minutes.");
         System.out.println("Average order processing time: " + globalFinishTime.getAverage()/3600 + " hours."); 
         double[] confidenceInterval = globalFinishTime.getConfidenceInterval95();
-        System.out.println("Reliability interval: <" + confidenceInterval[0]/3600 + ", " + confidenceInterval[1]/3600 + ">");
+        System.out.println("Reliability interval: <" + confidenceInterval[0]/3600 + ", " + confidenceInterval[1]/3600 + ">"); */
     }
 }
